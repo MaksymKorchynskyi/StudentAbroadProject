@@ -273,14 +273,14 @@
               data-ua="Читати більше">Read more</a>
           </div>
           {% empty %}
-          <div class="program-card no-results-message" style="display: flex; justify-content: center; align-items: center; min-height: 200px;">
+          <div class="program-card no-results-message" style="display: flex; justify-content: center; align-items: center; min-height: 200px; margin: 10vh auto 20vh;">
             <p style="font-size: 20px; font-style: italic; color: #3e5060; text-align: center; width: 100%; margin: 0;" data-en="No programs available at the moment." data-ua="На даний момент програм немає.">
               No programs available at the moment.
             </p>
           </div>
           {% endfor %}
 
-          <div id="no-filter-results" class="program-card" style="display: none; justify-content: center; align-items: center; min-height: 200px;">
+          <div id="no-filter-results" class="program-card" style="display: none; justify-content: center; align-items: center; min-height: 200px; margin: 10vh auto 20vh;">
             <p style="font-size: 20px; font-style: italic; color: #3e5060; text-align: center; width: 100%; margin: 0;" data-en="No programs found matching filters." data-ua="Програм за вибраними фільтрами не знайдено.">
               No programs found matching filters.
             </p>
@@ -340,7 +340,7 @@
               </div>
             </div>
             {% empty %}
-            <div class="program-card-m no-results-message-mobile" style="display: block; width: 100%;">
+            <div class="program-card-m no-results-message-mobile" style="display: block; width: 100%; margin: 10vh auto 20vh;">
               <div class="program-info-m" style="display: flex; justify-content: center; align-items: center; min-height: 150px;">
                 <p style="font-size: 18px; font-style: italic; color: #3e5060; text-align: center; margin: 0;" data-en="No programs available at the moment." data-ua="На даний момент програм немає.">
                   No programs available at the moment.
@@ -349,7 +349,7 @@
             </div>
             {% endfor %}
 
-            <div id="no-filter-results-mobile" class="program-card-m" style="display: none; width: 100%;">
+            <div id="no-filter-results-mobile" class="program-card-m" style="display: none; width: 100%; margin: 10vh auto 20vh;">
               <div class="program-info-m" style="display: flex; justify-content: center; align-items: center; min-height: 150px;">
                 <p style="font-size: 18px; font-style: italic; color: #3e5060; text-align: center; margin: 0;" data-en="No programs found matching filters." data-ua="Програм за вибраними фільтрами не знайдено.">
                   No programs found matching filters.
