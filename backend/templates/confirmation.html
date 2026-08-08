@@ -1,11 +1,12 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Submission Confirmed!</title>
-    <link rel="stylesheet" href="./project/css/style.css" />
-    <link rel="website icon" type="png" href="./project/img/logo_01.png" />
+    <link rel="stylesheet" href="{% static \'project/css/style.css\' %}" />
+    <link rel="website icon" type="png" href="{% static \'project/img/logo_01.png\' %}" />
     <link
       href="https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500&display=swap"
       rel="stylesheet" />
@@ -34,7 +35,7 @@
           <div class="logo">
             <a href="index.html">
               <img
-                src="./project/img/name_no-background_01.svg"
+                src="{% static \'project/img/name_no-background_01.svg\' %}"
                 alt=" StudentAbroad logo"
                 loading="lazy" />
             </a>
@@ -162,7 +163,7 @@
             <div>
               <img
                 class="greetings__img"
-                src="./project/img/logo_part1.svg"
+                src="{% static \'project/img/logo_part1.svg\' %}"
                 alt="StudentAbroad logo"
                 loading="lazy" />
             </div>
@@ -208,7 +209,7 @@
           <div class="footer__logo">
             <img
               class="footer__img"
-              src="./project/img/name_no-background_01.svg"
+              src="{% static \'project/img/name_no-background_01.svg\' %}"
               alt="StudentAbroad logo" />
           </div>
 
@@ -287,7 +288,7 @@
                 tabindex="0">
                 <img
                   class="footer__scroll-indicator-img"
-                  src="./project/img/icon_arrow.svg"
+                  src="{% static \'project/img/icon_arrow.svg\' %}"
                   alt="Scroll Down Icon" />
               </button>
             </div>
@@ -297,6 +298,6 @@
         </div>
       </div>
     </footer>
-    <script type="module" src="./js/main.js"></script>
+    <script type="module" src="{% static \'js/main.js\' %}"></script>
   </body>
 </html>
