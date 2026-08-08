@@ -1,7 +1,7 @@
 // main.js - додаємо імпорт та ініціалізацію
 
 import { initLanguageSwitcher } from "./modules/language-switcher.js?v=2";
-import { initScrollIndicator } from "./modules/scroll-indicator.js?v=2";
+import { initScrollIndicator } from "./modules/scroll-indicator.js?v=3";
 import { initCustomSelects } from "./modules/custom-select.js?v=2";
 import { initCountryFilter } from "./modules/country-filter.js?v=2";
 import { initAddUniversity } from "./modules/add-university.js?v=2";

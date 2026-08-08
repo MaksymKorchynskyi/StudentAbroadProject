@@ -11,6 +11,15 @@ export function initScrollIndicator() {
     scrollIndicator.addEventListener("click", scrollToAbout);
   }
 
+  // Footer scroll to top button
+  const footerScrollIndicators = document.querySelectorAll(".footer__scroll-indicator");
+  footerScrollIndicators.forEach(indicator => {
+    indicator.addEventListener("click", (e) => {
+      e.preventDefault();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    });
+  });
+
   const currentPage = window.location.pathname.split("/").pop();
   const menuLinks = document.querySelectorAll(
     ".header__menu a, .footer__menu a"
