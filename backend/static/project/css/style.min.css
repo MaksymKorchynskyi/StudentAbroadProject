@@ -471,7 +471,7 @@ header {
 }
 @media screen and (min-width: 1280px) {
   .hero-section {
-    height: 770px;
+    height: 100vh;
     padding: 260px 0;
   }
 }

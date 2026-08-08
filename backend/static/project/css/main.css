@@ -259,12 +259,13 @@ header {
 }
 @media screen and (min-width: 1024px) {
   .hero-section {
+    height: 100vh;
     padding: 220px 0;
   }
 }
 @media screen and (min-width: 1280px) {
   .hero-section {
-    height: 770px;
+    height: 100vh;
     padding: 260px 0;
   }
 }
