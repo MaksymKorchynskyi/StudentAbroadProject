@@ -362,8 +362,8 @@ export function initCountryFilter() {
     // Знаходимо всі чекбокси (включаючи мобільні)
     const inputs = document.querySelectorAll(".container-checkbox__input");
     
-    // Знаходимо всі картки університетів (десктоп і мобільні)
-    const cards = document.querySelectorAll(".university-card, .university-card-m");
+    // Знаходимо всі картки університетів (десктоп і мобільні), окрім повідомлень про відсутність результатів
+    const cards = document.querySelectorAll(".university-card:not(.no-results-message):not(#no-filter-results), .university-card-m:not(.no-results-message-mobile):not(#no-filter-results-mobile)");
 
     // Знаходимо чекбокси "All" (Всі країни)
     const allCheckboxes = document.querySelectorAll('.container-checkbox__input[value="all"]');
