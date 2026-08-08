@@ -48,6 +48,9 @@ body {
   color: var(--color-main-black);
   background-color: var(--color-main-white);
   height: 100%;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
   padding: 0;
 }
 
@@ -1299,6 +1302,7 @@ a:focus {
 .footer {
   background-color: var(--color-blue-dark);
   padding: 40px 0;
+  margin-top: auto;
 }
 
 @media screen and (min-width: 960px) {

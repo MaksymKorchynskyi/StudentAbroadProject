@@ -260,6 +260,12 @@
             No universities found.
           </p>
           {% endfor %}
+
+          <!-- Hidden message for JS filtering -->
+          <p id="no-filter-results" style="text-align: center; width: 100%; display: none;" data-en="No universities found."
+            data-ua="Університетів не знайдено.">
+            No universities found.
+          </p>
         </section>
 
         <!-- Show More button for desktop university list -->
@@ -387,7 +393,7 @@
       // --- Фільтрація країн ---
       const checkboxes = document.querySelectorAll('.container-checkbox__input');
       const cards = document.querySelectorAll('.university-card, .university-card-m');
-      const noResultsMsg = document.querySelector('.university-list p');
+      const noResultsMsg = document.getElementById('no-filter-results');
 
       // --- Show More Pagination (desktop only) ---
       const ITEMS_PER_PAGE = 7;
