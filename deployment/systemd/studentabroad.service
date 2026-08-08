@@ -32,7 +32,7 @@ ExecStart=/home/studentabroad/app/StudentAbroadProject/backend/venv/bin/gunicorn
     --workers 3 \
     --worker-class gthread \
     --threads 2 \
-    --bind unix:/run/studentabroad.sock \
+    --bind unix:/run/gunicorn/studentabroad.sock \
     --timeout 120 \
     --max-requests 1000 \
     --max-requests-jitter 50 \
