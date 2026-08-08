@@ -1,7 +1,7 @@
 # backend/universities/views.py
 
 from rest_framework import generics
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAdminUser
 from django.db.models import Q
 from django.http import HttpResponsePermanentRedirect
 from urllib.parse import urlencode
@@ -42,7 +42,7 @@ class UniversityDetailView(generics.RetrieveAPIView):
 class UniversityCreateView(generics.CreateAPIView):
     queryset = University.objects.all()
     serializer_class = UniversitySerializer
-    permission_classes = [AllowAny]
+    permission_classes = [IsAdminUser]  # Тільки адміни можуть створювати університети
 
 class UniversityOptionsView(generics.ListAPIView):
     serializer_class = UniversityOptionsSerializer

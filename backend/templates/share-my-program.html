@@ -7,6 +7,9 @@
     <title>StudentAbroad - Share Program</title>
     <link rel="stylesheet" href="{% static 'project/css/style.css' %}" />
     <link rel="website icon" type="png" href="{% static 'project/img/logo_part1.svg' %}" />
+    {% if turnstile_site_key %}
+    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+    {% endif %}
     <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500&display=swap" rel="stylesheet" />
     
 <style>
@@ -316,6 +319,21 @@
                 </label>
               </div>
 
+              <!-- ===== FORM PROTECTION ===== -->
+              <!-- Honeypot: невидиме поле-пастка для ботів -->
+              <div style="position:absolute;left:-9999px;top:-9999px;" aria-hidden="true">
+                <label for="website">Website</label>
+                <input type="text" name="website" id="website" tabindex="-1" autocomplete="off">
+              </div>
+
+              <!-- Timestamp: час завантаження сторінки -->
+              <input type="hidden" id="form-loaded-at" value="">
+
+              <!-- Cloudflare Turnstile (невидима CAPTCHA) -->
+              {% if turnstile_site_key %}
+              <div class="cf-turnstile" data-sitekey="{{ turnstile_site_key }}" data-callback="onTurnstileSuccess" data-theme="light" style="margin-bottom: 16px;"></div>
+              {% endif %}
+
               <div class="submit-button">
                 <button class="btn" type="submit" id="final-submit-btn" data-en="Submit" data-ua="Підтвердити">Submit</button>
               </div>
@@ -383,6 +401,15 @@
                 });
             });
         }, 500); 
+
+        // 3. FORM PROTECTION: Turnstile callback + timestamp
+        let turnstileToken = null;
+        // Глобальна функція для Turnstile callback
+        window.onTurnstileSuccess = function(token) {
+            turnstileToken = token;
+        };
+        // Записуємо час завантаження сторінки
+        document.getElementById('form-loaded-at').value = Date.now();
 
         const form = document.getElementById('share-program-form');
         const submitBtn = document.getElementById('final-submit-btn');
@@ -461,6 +488,19 @@
 
           payload.feedback = document.getElementById('feedback-input').value;
           payload.user_name = document.getElementById('user-name-input').value;
+
+          // ===== SECURITY FIELDS =====
+          // Honeypot (якщо бот заповнив — сервер зловить)
+          const honeypotField = document.getElementById('website');
+          if (honeypotField && honeypotField.value) {
+              payload.website = honeypotField.value;
+          }
+          // Timestamp (час завантаження форми)
+          payload.form_loaded_at = document.getElementById('form-loaded-at').value;
+          // Cloudflare Turnstile token
+          if (turnstileToken) {
+              payload.cf_turnstile_token = turnstileToken;
+          }
 
           try {
               const response = await fetch(window.location.href, {

@@ -2,17 +2,30 @@ import os
 from pathlib import Path
 from dotenv import load_dotenv
 
-# Завантажуємо змінні з файлу .env
-load_dotenv()
-
 # Будуємо шляхи всередині проекту: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# БЕЗПЕКА
-SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-change-me-please')
-DEBUG = os.getenv('DEBUG', 'True') == 'True'
+# Завантажуємо змінні з файлу .env
+# Шукаємо .env у папці backend, або в корені проекту (на рівень вище)
+_env_path = BASE_DIR / '.env'
+if not _env_path.exists():
+    _env_path = BASE_DIR.parent / '.env'
+load_dotenv(_env_path)
 
-ALLOWED_HOSTS = ['*']
+
+# ============================================================
+# БЕЗПЕКА
+# ============================================================
+# SECRET_KEY — обов'язково задати у .env (без fallback на продакшні!)
+SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-dev-only-change-in-production')
+
+# DEBUG — за замовчуванням False (безпечний дефолт для продакшну)
+DEBUG = os.getenv('DEBUG', 'False') == 'True'
+
+# ALLOWED_HOSTS — конкретні домени (ніколи не ['*'] на продакшні!)
+ALLOWED_HOSTS = [
+    h.strip() for h in os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',') if h.strip()
+]
 
 # ДОДАТКИ
 INSTALLED_APPS = [
@@ -128,6 +141,7 @@ UNFOLD = {
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',  # WhiteNoise — роздача статики на продакшні
     'django.contrib.sessions.middleware.SessionMiddleware',
     
     'corsheaders.middleware.CorsMiddleware', # CORS має бути високо
@@ -164,15 +178,20 @@ TEMPLATES = [
 # Вказуємо, що WSGI лежить у папці config
 WSGI_APPLICATION = 'config.wsgi.application'
 
+# ============================================================
 # БАЗА ДАНИХ (PostgreSQL)
+# ============================================================
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': os.getenv('DATABASE_NAME', 'studentabroad_db'),
         'USER': os.getenv('DATABASE_USER', 'postgres'),
-        'PASSWORD': os.getenv('DATABASE_PASSWORD', 'maksimdata1234'),
+        'PASSWORD': os.getenv('DATABASE_PASSWORD', ''),
         'HOST': os.getenv('DATABASE_HOST', 'localhost'),
         'PORT': os.getenv('DATABASE_PORT', '5432'),
+        # Connection pooling — зберігати з'єднання 10 хвилин (замість нового на кожен запит)
+        'CONN_MAX_AGE': 600,
+        'CONN_HEALTH_CHECKS': True,
     }
 }
 
@@ -201,7 +220,9 @@ LOCALE_PATHS = [
     BASE_DIR / 'locale',
 ]
 
+# ============================================================
 # СТАТИКА І МЕДІА
+# ============================================================
 STATIC_URL = '/static/'
 # Ми беремо статику з папки static у корені backend
 STATICFILES_DIRS = [
@@ -209,16 +230,31 @@ STATICFILES_DIRS = [
 ]
 STATIC_ROOT = BASE_DIR / 'staticfiles' # Для collectstatic
 
+# WhiteNoise — стиснення та кешування статичних файлів
+STORAGES = {
+    "staticfiles": {
+        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+    },
+}
+
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
 # НАЛАШТУВАННЯ ID (Потрібно для деяких моделей)
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# CORS
-CORS_ALLOW_ALL_ORIGINS = True # Для розробки дозволяємо все
+# ============================================================
+# CORS — Cross-Origin Resource Sharing
+# ============================================================
+CORS_ALLOW_ALL_ORIGINS = DEBUG  # Тільки для розробки (DEBUG=True)
 CORS_ALLOW_CREDENTIALS = True
+
+# На продакшні CORS_ALLOW_ALL_ORIGINS=False, і використовуються тільки ці origins:
+_cors_origins_env = os.getenv('CORS_ORIGINS', '')
 CORS_ALLOWED_ORIGINS = [
+    origin.strip() for origin in _cors_origins_env.split(',') if origin.strip()
+] if _cors_origins_env else [
+    # Fallback для локальної розробки
     "http://localhost:8080",
     "http://127.0.0.1:8080",
     "http://localhost:3000",
@@ -226,7 +262,21 @@ CORS_ALLOWED_ORIGINS = [
     "http://127.0.0.1:5500",
 ]
 
+# ============================================================
+# CSRF — Cross-Site Request Forgery Protection
+# ============================================================
+# Django 4.0+ вимагає CSRF_TRUSTED_ORIGINS для роботи за Nginx reverse proxy
+_csrf_origins_env = os.getenv('CSRF_TRUSTED_ORIGINS', '')
+CSRF_TRUSTED_ORIGINS = [
+    origin.strip() for origin in _csrf_origins_env.split(',') if origin.strip()
+] if _csrf_origins_env else [
+    "http://localhost:8080",
+    "http://127.0.0.1:8080",
+]
+
+# ============================================================
 # REST FRAMEWORK
+# ============================================================
 REST_FRAMEWORK = {
     'DEFAULT_RENDERER_CLASSES': [
         'rest_framework.renderers.JSONRenderer',
@@ -238,7 +288,123 @@ REST_FRAMEWORK = {
         'rest_framework.parsers.MultiPartParser'
     ],
     'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.AllowAny',
+        'rest_framework.permissions.IsAuthenticatedOrReadOnly',
     ],
     'DEFAULT_VERSIONING_CLASS': 'rest_framework.versioning.QueryParameterVersioning',
+    
+    # Rate Limiting — захист від спаму та DDoS
+    'DEFAULT_THROTTLE_CLASSES': [
+        'rest_framework.throttling.AnonRateThrottle',
+        'rest_framework.throttling.UserRateThrottle',
+    ],
+    'DEFAULT_THROTTLE_RATES': {
+        'anon': '100/hour',
+        'user': '1000/hour',
+    },
+    
+    # Пагінація — не віддавати всі записи одним запитом
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'PAGE_SIZE': 50,
 }
+
+# ============================================================
+# SECURITY HEADERS (Production)
+# ============================================================
+# Захист від XSS, clickjacking, content type sniffing
+SECURE_BROWSER_XSS_FILTER = True
+SECURE_CONTENT_TYPE_NOSNIFF = True
+X_FRAME_OPTIONS = 'DENY'
+SECURE_REFERRER_POLICY = 'strict-origin-when-cross-origin'
+
+# HTTPS-only settings (активується через .env на продакшні)
+SECURE_SSL_REDIRECT = os.getenv('SECURE_SSL_REDIRECT', 'False') == 'True'
+if not DEBUG:
+    SECURE_HSTS_SECONDS = 31536000  # 1 рік
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
+# ============================================================
+# CACHING
+# ============================================================
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
+        'LOCATION': BASE_DIR / 'cache',
+        'TIMEOUT': 3600,  # 1 година
+    }
+}
+
+# ============================================================
+# LOGGING
+# ============================================================
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '{asctime} [{levelname}] {name}: {message}',
+            'style': '{',
+        },
+        'simple': {
+            'format': '{levelname} {message}',
+            'style': '{',
+        },
+    },
+    'handlers': {
+        'file': {
+            'level': 'WARNING',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': BASE_DIR / 'logs' / 'django.log',
+            'maxBytes': 5 * 1024 * 1024,  # 5 MB
+            'backupCount': 5,
+            'formatter': 'verbose',
+        },
+        'console': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'simple',
+        },
+    },
+    'root': {
+        'handlers': ['console'] + (['file'] if not DEBUG else []),
+        'level': 'INFO' if DEBUG else 'WARNING',
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console'] + (['file'] if not DEBUG else []),
+            'level': 'WARNING',
+            'propagate': False,
+        },
+        'django.request': {
+            'handlers': ['console'] + (['file'] if not DEBUG else []),
+            'level': 'ERROR',
+            'propagate': False,
+        },
+        # Логер для кастомних додатків
+        'programs': {
+            'handlers': ['console'] + (['file'] if not DEBUG else []),
+            'level': 'INFO' if DEBUG else 'WARNING',
+            'propagate': False,
+        },
+        'universities': {
+            'handlers': ['console'] + (['file'] if not DEBUG else []),
+            'level': 'INFO' if DEBUG else 'WARNING',
+            'propagate': False,
+        },
+        'faq': {
+            'handlers': ['console'] + (['file'] if not DEBUG else []),
+            'level': 'INFO' if DEBUG else 'WARNING',
+            'propagate': False,
+        },
+    },
+}
+
+# ============================================================
+# CLOUDFLARE TURNSTILE (Anti-bot CAPTCHA)
+# ============================================================
+# Ключі отримати: https://dash.cloudflare.com/?to=/:account/turnstile
+# Якщо ключі не задані — Turnstile вимкнений (для локальної розробки)
+TURNSTILE_SITE_KEY = os.getenv('TURNSTILE_SITE_KEY', '')
+TURNSTILE_SECRET_KEY = os.getenv('TURNSTILE_SECRET_KEY', '')

@@ -6,6 +6,8 @@ __pycache__/
 # Environment variables (безпека)
 .env
 .env.*
+# Дозволяємо .env.example (це шаблон, не секрети)
+!.env.example
 
 # Virtual Environment
 venv/
@@ -14,3 +16,14 @@ env/
 
 # macOS system files (важливо для майбутнього переходу на Мак!)
 .DS_Store
+
+# Django production artifacts
+backend/staticfiles/
+backend/logs/*.log
+backend/cache/
+
+# Media uploads (завантажуються користувачами, не зберігаємо в Git)
+backend/media/university_logos/*
+backend/media/university_backgrounds/*
+!backend/media/university_logos/.gitkeep
+!backend/media/university_backgrounds/.gitkeep

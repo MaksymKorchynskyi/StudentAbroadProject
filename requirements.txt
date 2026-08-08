@@ -19,3 +19,16 @@ python-dotenv>=1.0.0
 
 # Image Processing (for ImageField)
 Pillow>=10.0.0
+
+# === PRODUCTION ===
+# WSGI HTTP Server (замість вбудованого runserver)
+gunicorn>=21.2.0
+
+# Статика на продакшні (fallback якщо Nginx не налаштований)
+whitenoise>=6.5.0
+
+# Admin UI (використовується в INSTALLED_APPS та admin.py)
+django-unfold>=0.40.0
+
+# HTTP requests (для верифікації Cloudflare Turnstile)
+requests>=2.31.0

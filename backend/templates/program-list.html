@@ -84,6 +84,13 @@
       -ms-overflow-style: none;
       scrollbar-width: none;
     }
+
+    /* Hide Show More on mobile — slider handles mobile UX */
+    @media (max-width: 767px) {
+      #show-more-program-wrapper {
+        display: none !important;
+      }
+    }
   </style>
 </head>
 
@@ -279,6 +286,14 @@
             </p>
           </div>
         </section>
+
+        <!-- Show More button for desktop program list -->
+        <div id="show-more-program-wrapper" style="display: flex; justify-content: center; margin: 50px 0 -20px;">
+          <button id="show-more-program-btn" class="btn" type="button" data-en="Show More" data-ua="Показати більше"
+            style="display: none; width: auto; height: 45px; padding: 0 30px; font-size: 14px; margin-bottom: 0;">Show
+            More</button>
+        </div>
+
       </div>
     </section>
 
@@ -423,6 +438,36 @@
 
       const searchInput = document.querySelector('.country-search-box__input');
 
+      // --- Show More Pagination (desktop only) ---
+      const ITEMS_PER_PAGE = 7;
+      let visibleCount = ITEMS_PER_PAGE;
+      const showMoreBtn = document.getElementById('show-more-program-btn');
+
+      function applyPagination() {
+        // Collect desktop cards that pass the current filter
+        const matchingCards = Array.from(programCardsDesktop).filter(
+          c => c.dataset.filteredOut !== 'true'
+        );
+
+        // Apply pagination: show first `visibleCount`, hide the rest
+        matchingCards.forEach((card, index) => {
+          if (index < visibleCount) {
+            card.style.display = 'flex';
+          } else {
+            card.style.display = 'none';
+          }
+        });
+
+        // Show/hide button
+        if (showMoreBtn) {
+          if (visibleCount >= matchingCards.length) {
+            showMoreBtn.style.display = 'none';
+          } else {
+            showMoreBtn.style.display = '';
+          }
+        }
+      }
+
       // 1. Logic for Home Uni Checkboxes
       homeUniCheckboxes.forEach(cb => {
         cb.addEventListener('change', applyFilters);
@@ -462,22 +507,27 @@
 
         const hasActiveFilters = checkedHomeUnis.length > 0 || checkedLevels.length > 0;
 
-        // --- FILTER DESKTOP ---
+        // --- FILTER DESKTOP (mark with data attribute, pagination handles display) ---
         let visibleCountDesktop = 0;
         programCardsDesktop.forEach(card => {
           if (shouldShowCard(card, checkedHomeUnis, checkedLevels)) {
-            card.style.display = 'flex';
+            card.dataset.filteredOut = 'false';
             visibleCountDesktop++;
           } else {
+            card.dataset.filteredOut = 'true';
             card.style.display = 'none';
           }
         });
+
+        // Reset pagination when filter changes
+        visibleCount = ITEMS_PER_PAGE;
+        applyPagination();
+
         if (noResultsMsgDesktop) {
           noResultsMsgDesktop.style.display = visibleCountDesktop === 0 ? 'flex' : 'none';
         }
 
         // --- FILTER MOBILE ---
-        // If filters are active, enable the horizontal scroll (filtered) mode
         if (hasActiveFilters) {
           mobileSliderContainer.classList.add('is-filtered');
         } else {
@@ -520,6 +570,17 @@
 
         return homeMatch && levelMatch;
       }
+
+      // Show More button click handler
+      if (showMoreBtn) {
+        showMoreBtn.addEventListener('click', function () {
+          visibleCount += ITEMS_PER_PAGE;
+          applyPagination();
+        });
+      }
+
+      // Initial run - apply filters and pagination on page load
+      applyFilters();
     });
   </script>
 </body>

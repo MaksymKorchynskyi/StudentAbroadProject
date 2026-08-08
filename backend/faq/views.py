@@ -1,16 +1,16 @@
 from django.http import JsonResponse
 from django.views.decorators.http import require_GET
-from django.views.decorators.csrf import csrf_exempt
 from django.core.exceptions import ObjectDoesNotExist
 import json
+import logging
 from .models import FAQItem, FAQCategory
 from django.shortcuts import render
-from rest_framework import generics # <-- Додано імпорт generics
+from rest_framework import generics
 from rest_framework.permissions import AllowAny
-from .models import FAQItem  # <-- Виправлено назву моделі (було FAQ)
 from .serializers import FAQSerializer
 
-@csrf_exempt
+logger = logging.getLogger(__name__)
+
 @require_GET
 def faq_list(request):
     try:
@@ -47,13 +47,14 @@ def faq_list(request):
             })
         
         response = JsonResponse({'faq_items': result, 'status': 'success', 'language': lang})
-        response["Access-Control-Allow-Origin"] = "*"
+        # CORS керується через django-cors-headers middleware (settings.py)
         return response
         
     except Exception as e:
+        logger.error(f"Error fetching FAQ items: {e}", exc_info=True)
         return JsonResponse({
             'status': 'error',
-            'message': str(e),
+            'message': 'Помилка при завантаженні FAQ',
             'faq_items': []
         }, status=500)
     

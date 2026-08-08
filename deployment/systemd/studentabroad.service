@@ -1,0 +1,50 @@
+# ============================================================
+# Systemd Service — StudentAbroad Gunicorn
+# ============================================================
+# Скопіювати на сервер:
+#   sudo cp deployment/systemd/studentabroad.service /etc/systemd/system/studentabroad.service
+#   sudo systemctl daemon-reload
+#   sudo systemctl start studentabroad
+#   sudo systemctl enable studentabroad
+#
+# Перевірити статус:
+#   sudo systemctl status studentabroad
+#   sudo journalctl -u studentabroad -f
+# ============================================================
+
+[Unit]
+Description=StudentAbroad Gunicorn Application Server
+After=network.target postgresql.service
+Wants=postgresql.service
+
+[Service]
+Type=notify
+User=studentabroad
+Group=www-data
+RuntimeDirectory=gunicorn
+WorkingDirectory=/home/studentabroad/app/StudentAbroadProject/backend
+Environment="PATH=/home/studentabroad/app/StudentAbroadProject/backend/venv/bin"
+EnvironmentFile=/home/studentabroad/app/StudentAbroadProject/.env
+
+ExecStart=/home/studentabroad/app/StudentAbroadProject/backend/venv/bin/gunicorn \
+    --access-logfile - \
+    --error-logfile /home/studentabroad/app/StudentAbroadProject/backend/logs/gunicorn-error.log \
+    --workers 3 \
+    --worker-class gthread \
+    --threads 2 \
+    --bind unix:/run/studentabroad.sock \
+    --timeout 120 \
+    --max-requests 1000 \
+    --max-requests-jitter 50 \
+    config.wsgi:application
+
+ExecReload=/bin/kill -s HUP $MAINPID
+KillMode=mixed
+TimeoutStopSec=5
+PrivateTmp=true
+
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

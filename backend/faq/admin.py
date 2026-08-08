@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.contrib import admin
 from unfold.admin import ModelAdmin
 from unfold.decorators import display, action
@@ -50,7 +51,7 @@ class FAQItemAdmin(ModelAdmin):
             'fields': ('categories', 'is_published', 'created_at', 'updated_at')
         }),
     )
-    
+        
     # Custom display with Unfold badges
     @display(
         description="Статус",

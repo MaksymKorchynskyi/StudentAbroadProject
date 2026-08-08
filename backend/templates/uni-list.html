@@ -98,6 +98,13 @@
     .university-info-m .uni-data__link:hover {
       color: #555555;
     }
+
+    /* Hide Show More on mobile — slider handles mobile UX */
+    @media (max-width: 767px) {
+      #show-more-uni-wrapper {
+        display: none !important;
+      }
+    }
   </style>
 </head>
 
@@ -255,6 +262,13 @@
           {% endfor %}
         </section>
 
+        <!-- Show More button for desktop university list -->
+        <div id="show-more-uni-wrapper" style="display: flex; justify-content: center; margin: 50px 0 -20px;">
+          <button id="show-more-uni-btn" class="btn" type="button" data-en="Show More" data-ua="Показати більше"
+            style="display: none; width: auto; height: 45px; padding: 0 30px; font-size: 14px; margin-bottom: 0;">Show
+            More</button>
+        </div>
+
         <section class="mobile-slider">
           <div class="slider">
             <div class="slider__track">
@@ -358,7 +372,7 @@
 
   <script>
     document.addEventListener('DOMContentLoaded', () => {
-      // --- Логіка урізання тексту (була раніше) ---
+      // --- Логіка урізання тексту ---
       const charLimit = 22;
       const itemsToTruncate = document.querySelectorAll('.js-truncate-link');
 
@@ -366,42 +380,97 @@
         const originalText = item.textContent.trim();
         if (originalText.length > charLimit) {
           item.textContent = originalText.substring(0, charLimit) + '...';
-          // Зберігаємо повний текст у title для підказки
           item.setAttribute('title', originalText);
         }
       });
 
-      // --- Нова логіка фільтрації країн ---
+      // --- Фільтрація країн ---
       const checkboxes = document.querySelectorAll('.container-checkbox__input');
-      // Охоплюємо картки з основного списку та мобільного слайдера
       const cards = document.querySelectorAll('.university-card, .university-card-m');
       const noResultsMsg = document.querySelector('.university-list p');
 
-      function filterUniversities() {
-        // Отримуємо список значень вибраних чекбоксів (тільки тих, що checked)
-        const checkedValues = Array.from(checkboxes)
-          .filter(cb => cb.checked)
-          .map(cb => cb.value);
+      // --- Show More Pagination (desktop only) ---
+      const ITEMS_PER_PAGE = 7;
+      let visibleCount = ITEMS_PER_PAGE;
+      const showMoreBtn = document.getElementById('show-more-uni-btn');
 
-        // Проходимось по всіх картках
-        cards.forEach(card => {
-          const cardCountry = card.getAttribute('data-country');
+      function applyPagination() {
+        // Get all desktop cards that pass the current filter (not display:none from filter)
+        const desktopCards = document.querySelectorAll('.university-card');
+        const filteredCards = [];
 
-          // Якщо нічого не вибрано (checkedValues.length === 0) -> показуємо все
-          // Або якщо країна картки є у списку вибраних -> показуємо
-          if (checkedValues.length === 0 || checkedValues.includes(cardCountry)) {
-            card.style.display = ''; // Скидаємо display, щоб повернути стилі CSS
+        desktopCards.forEach(card => {
+          // A card is "filtered in" if it hasn't been hidden by the filter
+          // We check the data attribute against current filter state
+          if (!card.classList.contains('pagination-hidden')) {
+            // Check if card was hidden by filter (not by pagination)
+            if (card.dataset.filteredOut !== 'true') {
+              filteredCards.push(card);
+            }
+          }
+        });
+
+        // Actually, let's use a simpler approach: track filter state separately
+        // Re-collect filtered-in cards
+        const allDesktop = Array.from(desktopCards);
+        const matchingCards = allDesktop.filter(c => c.dataset.filteredOut !== 'true');
+
+        // Apply pagination: show first `visibleCount`, hide the rest
+        matchingCards.forEach((card, index) => {
+          if (index < visibleCount) {
+            card.style.display = '';
           } else {
             card.style.display = 'none';
           }
         });
 
-        // Обробка повідомлення "No universities found" (тільки для десктоп списку)
-        // Перевіряємо, чи є видимі картки саме в основному списку
-        const visibleDesktopCards = document.querySelectorAll('.university-card:not([style*="display: none"])');
+        // Show/hide button
+        if (showMoreBtn) {
+          if (visibleCount >= matchingCards.length) {
+            showMoreBtn.style.display = 'none';
+          } else {
+            showMoreBtn.style.display = '';
+          }
+        }
+      }
+
+      function filterUniversities() {
+        const checkedValues = Array.from(checkboxes)
+          .filter(cb => cb.checked)
+          .map(cb => cb.value);
+
+        // Mark cards with filter state via data attribute
+        cards.forEach(card => {
+          const cardCountry = card.getAttribute('data-country');
+          const isDesktop = card.classList.contains('university-card');
+
+          if (checkedValues.length === 0 || checkedValues.includes(cardCountry)) {
+            if (isDesktop) {
+              card.dataset.filteredOut = 'false';
+            } else {
+              // Mobile cards: show/hide directly (no pagination)
+              card.style.display = '';
+            }
+          } else {
+            if (isDesktop) {
+              card.dataset.filteredOut = 'true';
+              card.style.display = 'none';
+            } else {
+              card.style.display = 'none';
+            }
+          }
+        });
+
+        // Reset pagination when filter changes
+        visibleCount = ITEMS_PER_PAGE;
+        applyPagination();
+
+        // Handle "No universities found" message
+        const visibleDesktopCards = Array.from(
+          document.querySelectorAll('.university-card')
+        ).filter(c => c.dataset.filteredOut !== 'true');
 
         if (noResultsMsg) {
-          // Якщо є університети взагалі, але жоден не відображається через фільтр
           if (visibleDesktopCards.length === 0 && cards.length > 0) {
             noResultsMsg.style.display = 'block';
           } else {
@@ -410,28 +479,32 @@
         }
       }
 
-      // Додаємо слухач подій на кожен чекбокс
+      // Show More button click handler
+      if (showMoreBtn) {
+        showMoreBtn.addEventListener('click', () => {
+          visibleCount += ITEMS_PER_PAGE;
+          applyPagination();
+        });
+      }
+
+      // Checkbox change handlers
       checkboxes.forEach(cb => {
         cb.addEventListener('change', (e) => {
           const valueChanged = e.target.value;
           const isChecked = e.target.checked;
 
-          // СИНХРОНІЗАЦІЯ: 
-          // Якщо змінили стан країни в одному місці (наприклад, десктоп),
-          // оновлюємо такий самий чекбокс в іншому місці (мобайл)
+          // Sync checkboxes between desktop and mobile
           checkboxes.forEach(otherCb => {
             if (otherCb.value === valueChanged) {
               otherCb.checked = isChecked;
             }
           });
 
-          // Запускаємо фільтрацію
           filterUniversities();
         });
       });
 
-      // Запустити один раз при завантаженні сторінки, щоб застосувати логіку
-      // (наприклад, якщо браузер запам'ятав стан чекбоксів при перезавантаженні)
+      // Initial run
       filterUniversities();
     });
   </script>

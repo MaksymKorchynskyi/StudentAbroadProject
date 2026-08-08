@@ -109,8 +109,8 @@
         {% include "partials/footer.html" %}
         {% endblock %}
 
-        <!-- Scripts with defer for non-blocking load -->
-        <script type="module" src="{% static 'js/main.js' %}" defer></script>
+        <!-- Scripts: type="module" is deferred by default -->
+        <script type="module" src="{% static 'js/main.js' %}"></script>
         {% block extra_js %}{% endblock %}
         </body>
 
