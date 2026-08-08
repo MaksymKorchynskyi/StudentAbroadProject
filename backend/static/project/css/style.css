@@ -1102,11 +1102,8 @@ a:focus {
 }
 
 .icon-link {
-  width: 40px;
-  height: 40px;
   font-size: 16px;
   font-weight: 400;
-  border-radius: 50%;
   display: flex;
   align-items: center;
   gap: 30px;
@@ -1115,11 +1112,19 @@ a:focus {
   white-space: normal;
 }
 
+.icon-link svg {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+}
+
 @media screen and (min-width: 480px) {
   .icon-link {
+    font-size: 20px;
+  }
+  .icon-link svg {
     width: 60px;
     height: 60px;
-    font-size: 20px;
   }
 }
 
