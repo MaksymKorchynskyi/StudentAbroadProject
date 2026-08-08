@@ -237,6 +237,33 @@ STORAGES = {
     },
 }
 
+# ============================================================
+# CLOUDFLARE R2 (MEDIA STORAGE)
+# ============================================================
+AWS_ACCESS_KEY_ID = os.getenv('AWS_ACCESS_KEY_ID')
+AWS_SECRET_ACCESS_KEY = os.getenv('AWS_SECRET_ACCESS_KEY')
+AWS_STORAGE_BUCKET_NAME = os.getenv('AWS_STORAGE_BUCKET_NAME')
+AWS_S3_ENDPOINT_URL = os.getenv('AWS_S3_ENDPOINT_URL')
+AWS_S3_REGION_NAME = 'auto'
+AWS_S3_SIGNATURE_VERSION = 's3v4'
+AWS_S3_CUSTOM_DOMAIN = os.getenv('AWS_S3_CUSTOM_DOMAIN')
+
+if AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY:
+    # Cloudflare не підтримує S3 ACLs, тому вимикаємо їх
+    AWS_DEFAULT_ACL = None
+    AWS_S3_OBJECT_PARAMETERS = {
+        'CacheControl': 'max-age=86400',
+    }
+    
+    # Якщо є публічний домен (r2.dev або свій), вимикаємо генерацію довгих тимчасових посилань
+    if AWS_S3_CUSTOM_DOMAIN:
+        AWS_QUERYSTRING_AUTH = False
+    
+    # Використовувати R2 для MEDIA
+    STORAGES["default"] = {
+        "BACKEND": "storages.backends.s3boto3.S3Boto3Storage",
+    }
+
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
