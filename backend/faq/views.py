@@ -23,8 +23,8 @@ def faq_list(request):
         if lang == 'uk':
             lang = 'ua'
         
-        # Фільтруємо тільки опубліковані FAQ
-        faq_items = FAQItem.objects.filter(is_published=True).order_by('-created_at')
+        # Фільтруємо тільки опубліковані FAQ та уникаємо N+1 для категорій
+        faq_items = FAQItem.objects.filter(is_published=True).prefetch_related('categories').order_by('-created_at')
         
         result = []
         for item in faq_items:

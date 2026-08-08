@@ -124,22 +124,21 @@ def university_list_page(request):
     # Формуємо список словників для шаблону з назвами обома мовами
     from django.utils import translation
     countries_data = []
+    
+    # Створюємо словники лише один раз
+    with translation.override('en'):
+        en_dict = dict(all_countries)
+    with translation.override('uk'):
+        uk_dict = dict(all_countries)
+        
     for code in used_country_codes:
         if not code:
             continue
-        
-        # Отримуємо англійську назву
-        with translation.override('en'):
-            name_en = dict(all_countries).get(code, code)
-            
-        # Отримуємо українську назву
-        with translation.override('uk'):
-            name_uk = dict(all_countries).get(code, code)
             
         countries_data.append({
             'code': code,
-            'name_en': name_en,
-            'name_uk': name_uk
+            'name_en': en_dict.get(code, code),
+            'name_uk': uk_dict.get(code, code)
         })
     
     # Сортуємо список країн за українською назвою
