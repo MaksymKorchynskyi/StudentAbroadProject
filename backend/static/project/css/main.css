@@ -249,7 +249,7 @@ header {
   align-items: center;
   position: relative;
   overflow: hidden;
-  background-image: url("../img/bg.png");
+  background-image: url("../img/bg.webp");
   background-repeat: no-repeat;
   background-position: center;
   background-size: cover;
@@ -4683,7 +4683,7 @@ form {
   align-items: center;
   position: relative;
   overflow: hidden;
-  background: url("/project/img/bg.png") center/cover no-repeat;
+  background: url("/project/img/bg.webp") center/cover no-repeat;
   text-align: center;
 }
 .hero-section__title {
