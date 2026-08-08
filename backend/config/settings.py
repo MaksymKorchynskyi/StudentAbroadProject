@@ -233,10 +233,7 @@ STATIC_ROOT = BASE_DIR / 'staticfiles' # Для collectstatic
 # WhiteNoise — стиснення та кешування статичних файлів
 STORAGES = {
     "staticfiles": {
-        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
-        "OPTIONS": {
-            "manifest_strict": False,
-        },
+        "BACKEND": "config.storage.NonStrictWhiteNoiseStorage",
     },
 }
 
