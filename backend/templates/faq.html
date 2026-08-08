@@ -238,10 +238,12 @@
           </div>
         </div>
         {% empty %}
-        <p style="text-align: center; padding: 40px; font-size: 18px;" data-en="No FAQs available at the moment."
-          data-ua="Наразі питань немає.">
-          No FAQs available at the moment.
-        </p>
+        <div class="faq__item no-results-message" style="display: flex; justify-content: center; align-items: center; min-height: 150px; background-color: #fff; border-radius: 10px; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05);">
+          <p style="text-align: center; width: 100%; font-size: 1.2rem; font-weight: 500; color: #555;" data-en="No FAQs available at the moment."
+            data-ua="Наразі питань немає.">
+            No FAQs available at the moment.
+          </p>
+        </div>
         {% endfor %}
 
       </div>

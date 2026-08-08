@@ -384,16 +384,47 @@ export function initCountryFilter() {
         allCheckboxes.forEach(cb => cb.checked = true);
       }
 
+      let visibleCountDesktop = 0;
+      let visibleCountMobile = 0;
+
       cards.forEach(card => {
         const country = card.getAttribute("data-country");
+        const isMobile = card.classList.contains("university-card-m");
         
         // Показуємо, якщо "Всі" або країна є у списку обраних
         if (showAll || checkedCountries.includes(country)) {
           card.style.display = ""; // Скидаємо inline style (display: none), повертається flex/block з CSS
+          if (isMobile) {
+            visibleCountMobile++;
+          } else {
+            visibleCountDesktop++;
+          }
         } else {
           card.style.display = "none";
         }
       });
+
+      const noResultsDesktop = document.getElementById("no-filter-results");
+      const noResultsMobile = document.getElementById("no-filter-results-mobile");
+      
+      const desktopCards = document.querySelectorAll('.university-card:not(.no-results-message):not(#no-filter-results)');
+      const mobileCards = document.querySelectorAll('.university-card-m:not(.no-results-message-mobile):not(#no-filter-results-mobile)');
+      
+      if (noResultsDesktop) {
+        if (desktopCards.length === 0) {
+          noResultsDesktop.style.display = 'none';
+        } else {
+          noResultsDesktop.style.display = visibleCountDesktop === 0 ? 'flex' : 'none';
+        }
+      }
+      
+      if (noResultsMobile) {
+        if (mobileCards.length === 0) {
+          noResultsMobile.style.display = 'none';
+        } else {
+          noResultsMobile.style.display = visibleCountMobile === 0 ? 'block' : 'none';
+        }
+      }
     }
 
     // Слухач подій для всіх чекбоксів

@@ -273,15 +273,15 @@
               data-ua="Читати більше">Read more</a>
           </div>
           {% empty %}
-          <div class="program-card no-results-message" style="display: flex;">
-            <p data-en="No programs available at the moment." data-ua="На даний момент програм немає.">
+          <div class="program-card no-results-message" style="display: flex; justify-content: center; align-items: center; min-height: 200px;">
+            <p style="font-size: 1.2rem; font-weight: 500; color: #555; text-align: center; width: 100%;" data-en="No programs available at the moment." data-ua="На даний момент програм немає.">
               No programs available at the moment.
             </p>
           </div>
           {% endfor %}
 
-          <div id="no-filter-results" class="program-card" style="display: none;">
-            <p data-en="No programs found matching filters." data-ua="Програм за вибраними фільтрами не знайдено.">
+          <div id="no-filter-results" class="program-card" style="display: none; justify-content: center; align-items: center; min-height: 200px;">
+            <p style="font-size: 1.2rem; font-weight: 500; color: #555; text-align: center; width: 100%;" data-en="No programs found matching filters." data-ua="Програм за вибраними фільтрами не знайдено.">
               No programs found matching filters.
             </p>
           </div>
@@ -339,12 +339,20 @@
                   class="btn read-more-btn-m" type="button">Read</a>
               </div>
             </div>
+            {% empty %}
+            <div class="program-card-m no-results-message-mobile" style="display: block; width: 100%;">
+              <div class="program-info-m" style="display: flex; justify-content: center; align-items: center; min-height: 150px;">
+                <p style="font-size: 1.1rem; font-weight: 500; color: #555; text-align: center;" data-en="No programs available at the moment." data-ua="На даний момент програм немає.">
+                  No programs available at the moment.
+                </p>
+              </div>
+            </div>
             {% endfor %}
 
             <div id="no-filter-results-mobile" class="program-card-m" style="display: none; width: 100%;">
-              <div class="program-info-m">
-                <p data-en="No programs found." data-ua="Програм не знайдено." style="text-align:center;">
-                  No programs found.
+              <div class="program-info-m" style="display: flex; justify-content: center; align-items: center; min-height: 150px;">
+                <p style="font-size: 1.1rem; font-weight: 500; color: #555; text-align: center;" data-en="No programs found matching filters." data-ua="Програм за вибраними фільтрами не знайдено.">
+                  No programs found matching filters.
                 </p>
               </div>
             </div>
@@ -524,7 +532,11 @@
         applyPagination();
 
         if (noResultsMsgDesktop) {
-          noResultsMsgDesktop.style.display = visibleCountDesktop === 0 ? 'flex' : 'none';
+          if (programCardsDesktop.length === 0) {
+            noResultsMsgDesktop.style.display = 'none';
+          } else {
+            noResultsMsgDesktop.style.display = visibleCountDesktop === 0 ? 'flex' : 'none';
+          }
         }
 
         // --- FILTER MOBILE ---
@@ -545,7 +557,11 @@
         });
 
         if (noResultsMsgMobile) {
-          noResultsMsgMobile.style.display = visibleCountMobile === 0 ? 'block' : 'none';
+          if (programCardsMobile.length === 0) {
+            noResultsMsgMobile.style.display = 'none';
+          } else {
+            noResultsMsgMobile.style.display = visibleCountMobile === 0 ? 'block' : 'none';
+          }
         }
       }
 
