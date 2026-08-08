@@ -19,7 +19,7 @@ class University(models.Model):
         help_text="Автоматично генерується з назви"
     )
     
-    country = CountryField(verbose_name="Країна")
+    country = CountryField(db_index=True, verbose_name="Країна")
     
     location_uk = models.CharField(
         max_length=200,
@@ -65,7 +65,7 @@ class University(models.Model):
         validators=[FileExtensionValidator(allowed_extensions=['jpg', 'jpeg', 'png'])]
     )
     
-    is_approved = models.BooleanField(default=True, verbose_name="Опубліковано")
+    is_approved = models.BooleanField(default=True, db_index=True, verbose_name="Опубліковано")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

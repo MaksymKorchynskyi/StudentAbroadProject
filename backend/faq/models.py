@@ -18,7 +18,7 @@ class FAQItem(models.Model):
     author_ua = models.CharField(max_length=100, verbose_name="Автор (Українська)")
     editor = models.CharField(max_length=100, verbose_name="Editor (English)")
     editor_ua = models.CharField(max_length=100, verbose_name="Редактор (Українська)")
-    is_published = models.BooleanField(default=False, verbose_name="Опубліковано")  # Додано поле публікації
+    is_published = models.BooleanField(default=False, db_index=True, verbose_name="Опубліковано")  # Додано поле публікації
     created_at = models.DateTimeField(default=timezone.now)
     updated_at = models.DateTimeField(auto_now=True)
     

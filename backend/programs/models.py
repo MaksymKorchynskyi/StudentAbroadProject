@@ -86,8 +86,8 @@ class Program(models.Model):
     useful_link_2_title_en = models.CharField(max_length=100, blank=True, null=True, verbose_name="Назва посилання 2 (eng)")
     useful_link_3_title_en = models.CharField(max_length=100, blank=True, null=True, verbose_name="Назва посилання 3 (eng)")
     
-    is_approved = models.BooleanField(default=False, verbose_name="Опубліковано")
-    created_at = models.DateTimeField(auto_now_add=True)
+    is_approved = models.BooleanField(default=False, db_index=True, verbose_name="Опубліковано")
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
     updated_at = models.DateTimeField(auto_now=True)
     submitted_by_name = models.CharField(max_length=100, blank=True, default='', verbose_name="Ім'я заявника")
     submitted_by_email = models.EmailField(blank=True, default='', verbose_name="Email заявника")
@@ -133,3 +133,6 @@ class Program(models.Model):
 
     class Meta:
         ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['is_approved', '-created_at']),
+        ]
