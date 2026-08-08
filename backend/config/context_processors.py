@@ -15,7 +15,7 @@ def seo_defaults(request):
         'default_meta_title_uk': 'StudentAbroad - Програми навчання за кордоном для українських студентів',
         'default_meta_description': 'Find exchange programs, universities, and study abroad opportunities. Get honest reviews from international students.',
         'default_meta_description_uk': 'Знайди програми обміну, університети та можливості навчання за кордоном. Отримай чесні відгуки від міжнародних студентів.',
-        'default_og_image': request.build_absolute_uri('/static/project/img/logo.svg'),
+        'default_og_image': request.build_absolute_uri('/static/project/img/bg.png'),
         'site_name': 'StudentAbroad',
         'canonical_url': request.build_absolute_uri(),
     }

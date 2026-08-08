@@ -3,7 +3,7 @@ from django.contrib.sitemaps import Sitemap
 from django.urls import reverse
 from programs.models import Program
 from universities.models import University
-from faq.models import FAQItem
+
 
 
 class StaticViewSitemap(Sitemap):
@@ -49,14 +49,3 @@ class UniversitySitemap(Sitemap):
         # Use model's get_absolute_url for SEO-friendly slug-based URLs
         return obj.get_absolute_url()
 
-
-class FAQSitemap(Sitemap):
-    """Sitemap for FAQ page"""
-    changefreq = 'monthly'
-    priority = 0.6
-    
-    def items(self):
-        return ['faq']
-    
-    def location(self, item):
-        return reverse(item)

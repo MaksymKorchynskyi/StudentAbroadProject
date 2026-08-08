@@ -10,7 +10,7 @@ from django.contrib.sitemaps.views import sitemap
 import os
 
 # SEO imports
-from .sitemaps import StaticViewSitemap, ProgramSitemap, UniversitySitemap, FAQSitemap
+from .sitemaps import StaticViewSitemap, ProgramSitemap, UniversitySitemap
 from .seo_views import robots_txt_view
 
 # Імпортуємо views
@@ -23,7 +23,6 @@ sitemaps = {
     'static': StaticViewSitemap,
     'programs': ProgramSitemap,
     'universities': UniversitySitemap,
-    'faq': FAQSitemap,
 }
 
 urlpatterns = [
