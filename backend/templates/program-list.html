@@ -36,54 +36,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500&display=swap" rel="stylesheet" />
 
   <style>
-    /* --- CSS Fix для мобільного фільтра (горизонтальний скрол) --- */
 
-    /* Коли фільтр активний: перетворюємо слайдер на нативний скрол-контейнер */
-    .slider.is-filtered .slider__track {
-      display: flex;
-      flex-direction: row;
-      /* В ряд, а не в стовпчик */
-      overflow-x: auto;
-      /* Дозволяємо гортати вбік */
-      scroll-snap-type: x mandatory;
-      /* Ефект прилипання */
-      gap: 20px;
-
-      /* Вимикаємо JS-трансформації, щоб скрипт не заважав */
-      transform: none !important;
-      width: 100%;
-      padding-bottom: 10px;
-      /* Відступ для скролбару */
-    }
-
-    /* Стилізація карток у режимі фільтрації */
-    .slider.is-filtered .program-card-m {
-      /* Фіксована ширина, щоб вони не стискалися */
-      min-width: 85vw;
-      max-width: 85vw;
-
-      scroll-snap-align: center;
-      /* Центрування при зупинці */
-      margin-right: 0;
-      /* Відступи контролює gap батька */
-    }
-
-    /* Ховаємо стрілки та крапки, бо нативний скрол працює від пальця */
-    .slider.is-filtered .slider__arrow,
-    .slider.is-filtered .slider__indicators {
-      display: none !important;
-    }
-
-    /* Ховаємо скролбар для краси (Chrome/Safari/Opera) */
-    .slider.is-filtered .slider__track::-webkit-scrollbar {
-      display: none;
-    }
-
-    /* Ховаємо скролбар для IE/Edge/Firefox */
-    .slider.is-filtered .slider__track {
-      -ms-overflow-style: none;
-      scrollbar-width: none;
-    }
 
     /* Hide Show More on mobile — slider handles mobile UX */
     @media (max-width: 767px) {

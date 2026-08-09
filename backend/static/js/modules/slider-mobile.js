@@ -11,10 +11,10 @@ export function initSlider() {
   }
 
   // --- ОРИГІНАЛ ---
-  const cards = document.querySelectorAll(".university-card-m");
+  const cards = document.querySelectorAll(".university-card-m:not(.no-results-message-mobile):not(#no-filter-results-mobile)");
 
   // --- ВИБІР АКТИВНИХ КАРТОК ---
-  const programCards = document.querySelectorAll(".program-card-m");
+  const programCards = document.querySelectorAll(".program-card-m:not(.no-results-message-mobile):not(#no-filter-results-mobile)");
   const activeCardsNodeList = programCards.length ? programCards : cards;
   const cardSelector = programCards.length
     ? ".program-card-m"
@@ -38,12 +38,24 @@ export function initSlider() {
   let isAnimating = false;
 
   // Перевірка наявності потрібних елементів
-  if (!track || !activeCardsNodeList.length || !indicators.length) {
-    console.error("Required slider elements are missing:", {
-      track: !!track,
-      activeCards: activeCardsNodeList.length,
-      indicators: indicators.length,
-    });
+  if (!track || activeCardsNodeList.length === 0) {
+    if (prevArrow) prevArrow.style.display = 'none';
+    if (nextArrow) nextArrow.style.display = 'none';
+    const indContainer = document.querySelector('.slider__indicators');
+    if (indContainer) indContainer.style.display = 'none';
+    return;
+  }
+
+  // Якщо тільки 1 картка, не потрібно ініціалізувати слайдер (стрілки і індикатори ховаємо)
+  if (activeCardsNodeList.length === 1) {
+    if (prevArrow) prevArrow.style.display = 'none';
+    if (nextArrow) nextArrow.style.display = 'none';
+    const indContainer = document.querySelector('.slider__indicators');
+    if (indContainer) indContainer.style.display = 'none';
+    return;
+  }
+
+  if (!indicators.length) {
     return;
   }
 

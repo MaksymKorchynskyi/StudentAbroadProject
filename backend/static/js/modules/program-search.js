@@ -51,7 +51,7 @@ function initSearchRedirect() {
         const searchQuery = this.value.trim();
         if (searchQuery) {
           // Перенаправляємо на search.html з параметром пошуку
-          window.location.href = `search.html?q=${encodeURIComponent(
+          window.location.href = `/search.html?q=${encodeURIComponent(
             searchQuery
           )}`;
         }
