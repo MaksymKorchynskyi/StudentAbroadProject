@@ -1,0 +1,44 @@
+name: Deploy to Production (Docker)
+
+on:
+  push:
+    branches:
+      - production
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to VPS via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            cd ~/app/StudentAbroadProject
+            git pull origin production
+            
+            # Визначаємо команду Docker Compose (V1 або V2)
+            if command -v docker-compose &> /dev/null; then
+              DC="docker-compose"
+            else
+              DC="docker compose"
+            fi
+            
+            # Перезбираємо образи на випадок змін у requirements.txt або Dockerfile
+            $DC -f docker-compose.prod.yml build
+            
+            # Запускаємо міграції бази даних
+            $DC -f docker-compose.prod.yml run --rm web python manage.py migrate
+            
+            # Збираємо статику
+            $DC -f docker-compose.prod.yml run --rm web python manage.py collectstatic --noinput
+            
+            # Запускаємо/Перезапускаємо контейнери (без даунтайму)
+            $DC -f docker-compose.prod.yml up -d
+            
+            # Перезавантажуємо Nginx для застосування нових конфігів
+            $DC -f docker-compose.prod.yml exec -T nginx nginx -s reload
+            
+            echo "Deploy successful!"

@@ -1,0 +1,36 @@
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: studentabroad_db_local
+    volumes:
+      - postgres_data_local:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: studentabroad_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: localpassword
+    ports:
+      - "5432:5432"
+
+  web:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    container_name: studentabroad_web_local
+    command: python manage.py runserver 0.0.0.0:8000
+    volumes:
+      - ./backend:/app/backend
+    ports:
+      - "8000:8000"
+    environment:
+      - DEBUG=True
+      - SECRET_KEY=django-insecure-local-dev-key
+      - DATABASE_HOST=db
+      - DATABASE_PORT=5432
+      - DATABASE_NAME=studentabroad_db
+      - DATABASE_USER=postgres
+      - DATABASE_PASSWORD=localpassword
+    depends_on:
+      - db
+
+volumes:
+  postgres_data_local:

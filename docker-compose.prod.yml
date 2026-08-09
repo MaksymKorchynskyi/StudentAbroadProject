@@ -1,0 +1,72 @@
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: studentabroad_db_prod
+    restart: always
+    volumes:
+      - postgres_data_prod:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: ${DATABASE_NAME:-studentabroad_db}
+      POSTGRES_USER: ${DATABASE_USER:-postgres}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
+    networks:
+      - app_network
+
+  web:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    container_name: studentabroad_web_prod
+    restart: always
+    command: gunicorn --workers=3 --bind=0.0.0.0:8000 config.wsgi:application
+    volumes:
+      - static_volume:/app/backend/staticfiles
+      - media_volume:/app/backend/media
+    env_file:
+      - .env
+    environment:
+      - DATABASE_HOST=db
+      - DATABASE_PORT=5432
+    depends_on:
+      - db
+    networks:
+      - app_network
+
+  nginx:
+    build:
+      context: deployment/nginx
+      dockerfile: Dockerfile
+    container_name: studentabroad_nginx_prod
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - static_volume:/home/studentabroad/app/StudentAbroadProject/backend/staticfiles
+      - media_volume:/home/studentabroad/app/StudentAbroadProject/backend/media
+      - ./certbot/conf:/etc/letsencrypt
+      - ./certbot/www:/var/www/certbot
+    depends_on:
+      - web
+    networks:
+      - app_network
+    # Кожні 6 годин перечитуємо сертифікати (після того, як Certbot їх оновить)
+    command: "/bin/sh -c 'while :; do sleep 6h & wait $${!}; nginx -s reload; done & nginx -g \"daemon off;\"'"
+
+  certbot:
+    image: certbot/certbot
+    container_name: studentabroad_certbot_prod
+    restart: unless-stopped
+    volumes:
+      - ./certbot/conf:/etc/letsencrypt
+      - ./certbot/www:/var/www/certbot
+    # Кожні 12 годин перевіряємо чи не час оновлювати сертифікат
+    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
+
+networks:
+  app_network:
+
+volumes:
+  postgres_data_prod:
+  static_volume:
+  media_volume:

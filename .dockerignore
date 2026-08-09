@@ -1,0 +1,17 @@
+venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+.env
+db.sqlite3
+*.log
+.git/
+.gitignore
+README.md
+audit_and_strategy.md
+implementation_plan.md
+task.md
+deployment/
