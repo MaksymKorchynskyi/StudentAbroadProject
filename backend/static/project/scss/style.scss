@@ -1064,6 +1064,10 @@ a {
   overflow: hidden;
   order: 2;
 
+  @media screen and (max-width: 767px) {
+    display: none;
+  }
+
   @media screen and (min-width: 1024px) {
     max-width: 442px;
     height: 375px;
