@@ -232,6 +232,9 @@ STATIC_ROOT = BASE_DIR / 'staticfiles' # Для collectstatic
 
 # WhiteNoise — стиснення та кешування статичних файлів
 STORAGES = {
+    "default": {
+        "BACKEND": "django.core.files.storage.FileSystemStorage",
+    },
     "staticfiles": {
         "BACKEND": "config.storage.NonStrictWhiteNoiseStorage",
     },
