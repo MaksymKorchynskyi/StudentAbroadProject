@@ -34,7 +34,7 @@ domains=(studentabroad.org.ua www.studentabroad.org.ua)
 rsa_key_size=4096
 data_path="./certbot"
 email="maksim.korcinskij@gmail.com" # Ваш email для Let's Encrypt сповіщень
-staging=1 # УВАГА: Змініть на 0 для отримання справжнього сертифікату!
+staging=0 # Set to 1 if you're testing your setup to avoid hitting request limits
 
 # --- Перевірка існуючих сертифікатів ---
 if [ -d "$data_path/conf/live/${domains[0]}" ]; then
