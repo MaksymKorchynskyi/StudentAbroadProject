@@ -16,7 +16,7 @@ services:
       context: .
       dockerfile: backend/Dockerfile
     container_name: studentabroad_web_local
-    command: python manage.py runserver 0.0.0.0:8000
+    command: sh -c "pip install -r /app/backend/requirements-dev.txt && python manage.py runserver 0.0.0.0:8000"
     volumes:
       - ./backend:/app/backend
     ports:

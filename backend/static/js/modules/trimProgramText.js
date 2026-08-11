@@ -1,7 +1,7 @@
 /**
  * Ініціалізує скорочення текстів у програмних картках
  */
-export function initTrimText(limit = 112) {
+export function initTrimText(limit = 230) {
   const paragraphs = document.querySelectorAll(".program-info-m p");
   paragraphs.forEach((p) => {
     const originalText = p.textContent.trim();
@@ -22,5 +22,5 @@ export function initTrimText(limit = 112) {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-  initTrimText(112);
+  initTrimText(230);
 });

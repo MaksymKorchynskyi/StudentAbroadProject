@@ -48,8 +48,8 @@ urlpatterns += i18n_patterns(
     path('uni-list.html', university_list_page, name='uni-list'),
     
     # --- SEO: Slug-based URLs (нові, human-readable) ---
-    path('program/<slug:slug>/', program_detail_page, name='program-detail'),
-    path('university/<slug:slug>/', university_page_view, name='university-detail'),
+    path('program/<str:slug>/', program_detail_page, name='program-detail'),
+    path('university/<str:slug>/', university_page_view, name='university-detail'),
     
     # --- Legacy: Query parameter URLs (для зворотної сумісності) ---
     path('uni-read-more.html', university_page_view, name='uni-read-more'),

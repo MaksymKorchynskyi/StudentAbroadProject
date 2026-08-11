@@ -1,0 +1,3 @@
+-r ../requirements.txt
+Faker>=20.0.0
+factory-boy>=3.3.0
