@@ -27,5 +27,8 @@ COPY backend /app/backend
 # Налаштування робочої директорії на рівень, де знаходиться manage.py
 WORKDIR /app/backend
 
+# Створити директорії для кешу та логів (потрібні на production)
+RUN mkdir -p /app/backend/cache /app/backend/logs
+
 # Команда за замовчуванням (буде перевизначена в docker-compose для продакшену)
 CMD ["gunicorn", "--bind", "0.0.0.0:8000", "config.wsgi:application"]

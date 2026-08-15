@@ -529,6 +529,11 @@
               payload.cf_turnstile_token = turnstileToken;
           }
 
+          // Блокуємо кнопку під час відправки
+          const originalBtnText = submitBtn.textContent;
+          submitBtn.disabled = true;
+          submitBtn.textContent = 'Відправляємо... / Submitting...';
+
           try {
               const response = await fetch(window.location.href, {
                   method: 'POST',
@@ -539,14 +544,31 @@
                   body: JSON.stringify(payload)
               });
 
-              const result = await response.json();
+              // Перевіряємо чи відповідь — валідний JSON
+              let result;
+              try {
+                  result = await response.json();
+              } catch (parseError) {
+                  // Сервер повернув не-JSON (наприклад, HTML 403/500 сторінку)
+                  console.error('Non-JSON response:', response.status, parseError);
+                  alert('Помилка сервера. Будь ласка, оновіть сторінку та спробуйте ще раз.\n\nServer error. Please refresh the page and try again.');
+                  submitBtn.disabled = false;
+                  submitBtn.textContent = originalBtnText;
+                  return;
+              }
+
               if (result.status === 'success') {
                   window.location.href = "{% url 'confirmation' %}";
               } else {
                   alert('Error: ' + result.message);
+                  submitBtn.disabled = false;
+                  submitBtn.textContent = originalBtnText;
               }
           } catch (error) {
-              console.error('Error:', error);
+              console.error('Network error:', error);
+              alert("Помилка з'єднання. Перевірте інтернет та спробуйте ще раз.\n\nConnection error. Check your internet and try again.");
+              submitBtn.disabled = false;
+              submitBtn.textContent = originalBtnText;
           }
         });
         

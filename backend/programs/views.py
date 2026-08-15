@@ -235,142 +235,16 @@ def _validate_field_lengths(data):
 
 def share_program_page(request):
     if request.method == "POST":
-        client_ip = _get_client_ip(request)
-        
+        # Верхньорівневий try/except — щоб будь-яка необроблена помилка
+        # повертала JSON, а не HTML-сторінку Django "Server Error (500)"
         try:
-            data = json.loads(request.body)
-        except (json.JSONDecodeError, ValueError):
-            return JsonResponse({'status': 'error', 'message': 'Невірний формат даних.'}, status=400)
-        
-        # ── РІВЕНЬ 1: Cloudflare Turnstile ──
-        turnstile_token = data.get('cf_turnstile_token', '')
-        if not _verify_turnstile(turnstile_token, client_ip):
-            logger.warning(f"Turnstile verification failed from IP: {client_ip}")
-            return JsonResponse({
-                'status': 'error',
-                'message': 'Перевірка безпеки не пройдена. Оновіть сторінку та спробуйте ще раз.'
-            }, status=403)
-        
-        # ── РІВЕНЬ 2a: Honeypot ──
-        # Якщо приховане поле "website" заповнене — це бот
-        if data.get('website', ''):
-            logger.warning(f"Honeypot triggered from IP: {client_ip}")
-            # Повертаємо "успіх" щоб бот думав що все ок
-            return JsonResponse({'status': 'success', 'message': 'Program added successfully'})
-        
-        # ── РІВЕНЬ 2b: Time-based check ──
-        # Людина не може заповнити 8+ полів за 5 секунд
-        form_loaded_at = data.get('form_loaded_at', 0)
-        try:
-            elapsed = (time.time() * 1000 - int(form_loaded_at)) / 1000  # секунди
-            if elapsed < 5:
-                logger.warning(f"Too fast submission ({elapsed:.1f}s) from IP: {client_ip}")
-                return JsonResponse({'status': 'success', 'message': 'Program added successfully'})
-        except (ValueError, TypeError):
-            pass  # Якщо timestamp некоректний — пропускаємо перевірку
-        
-        # ── РІВЕНЬ 3: Серверна валідація ──
-        is_valid, error_msg = _validate_field_lengths(data)
-        if not is_valid:
-            return JsonResponse({'status': 'error', 'message': error_msg}, status=400)
-        
-        # ── РІВЕНЬ 4: Rate Limiting ──
-        if _is_rate_limited(request, limit=5, period=3600):
-            logger.warning(f"Rate limit exceeded from IP: {client_ip}")
-            return JsonResponse({
-                'status': 'error',
-                'message': 'Ви відправили забагато заявок. Спробуйте через годину.'
-            }, status=429)
-        
-        # ── Все перевірки пройдені — зберігаємо програму ──
-        try:
-            program = Program()
-            program.name_uk = _sanitize_input(data.get('program_name', 'No Name'))
-            
-            # --- 1. Inviting University ---
-            inviting_id = data.get('inviting_uni_id')
-            inviting_text = _sanitize_input(data.get('inviting_uni_text', ''))
-            inviting_details = _sanitize_input(data.get('inviting_uni_details', ''))
-            
-            if inviting_id == 'any':
-                program.university = None
-                program.university_details = "ОБРАНО: Будь-який університет / Any University.\n" + inviting_details
-            elif inviting_id:
-                try:
-                    program.university = University.objects.get(id=inviting_id)
-                    program.university_details = inviting_details
-                except University.DoesNotExist:
-                    pass
-            else:
-                info_parts = []
-                if inviting_text:
-                    info_parts.append(f"НОВА НАЗВА: {inviting_text}")
-                if inviting_details:
-                    info_parts.append(f"ДЕТАЛІ: {inviting_details}")
-                program.university_details = "\n\n".join(info_parts)
-
-            # --- 2. Home University ---
-            home_id = data.get('home_uni_id')
-            home_text = _sanitize_input(data.get('home_uni_text', ''))
-            home_details = _sanitize_input(data.get('home_uni_details', ''))
-            
-            if home_id == 'any':
-                program.home_university = None
-                program.home_university_details = "ОБРАНО: Будь-який університет / Any University.\n" + home_details
-            elif home_id:
-                try:
-                    program.home_university = University.objects.get(id=home_id)
-                    program.home_university_details = home_details
-                except University.DoesNotExist:
-                    pass
-            else:
-                info_parts = []
-                if home_text:
-                    info_parts.append(f"НОВА НАЗВА: {home_text}")
-                if home_details:
-                    info_parts.append(f"ДЕТАЛІ: {home_details}")
-                program.home_university_details = "\n\n".join(info_parts)
-
-            # --- Інші поля ---
-            program.faculty_uk = _sanitize_input(data.get('faculty', 'Other'))
-            
-            # Мапінг рівня навчання
-            study_level_map = {
-                'Bachelor': 'Bachelor',
-                'Бакалавр': 'Bachelor',
-                'Master': 'Master',
-                'Магістр': 'Master',
-                'PhD': 'PhD',
-                'PhD / Аспірантура': 'PhD',
-                'Other': 'Other',
-                'Інше': 'Other'
-            }
-            raw_level = data.get('level', 'Other')
-            program.study_level = study_level_map.get(raw_level, 'Other')
-            
-            program.description_uk = _sanitize_input(data.get('feedback', ''))
-            program.submitted_by_name = _sanitize_input(data.get('user_name', ''))
-
-            # --- Збереження деталей факультету та рівня ---
-            admin_notes = []
-            faculty_details = _sanitize_input(data.get('faculty_details', ''))
-            level_details = _sanitize_input(data.get('level_details', ''))
-
-            if faculty_details:
-                admin_notes.append(f"Faculty details: {faculty_details}")
-            if level_details:
-                admin_notes.append(f"Level details: {level_details}")
-            
-            if admin_notes:
-                program.user_university_text = " | ".join(admin_notes)[:255]
-            
-            program.save()
-            logger.info(f"New program submitted: '{program.name_uk}' from IP: {client_ip}")
-            return JsonResponse({'status': 'success', 'message': 'Program added successfully'})
-            
+            return _handle_share_program_post(request)
         except Exception as e:
-            logger.error(f"Error adding program: {e}", exc_info=True)
-            return JsonResponse({'status': 'error', 'message': 'Помилка при збереженні програми. Спробуйте ще раз.'}, status=400)
+            logger.error(f"Unhandled error in share_program_page: {e}", exc_info=True)
+            return JsonResponse({
+                'status': 'error',
+                'message': 'Внутрішня помилка сервера. Спробуйте пізніше.'
+            }, status=500)
 
     # GET — показати форму
     universities = University.objects.filter(is_approved=True).order_by('name_uk')
@@ -379,3 +253,143 @@ def share_program_page(request):
         'turnstile_site_key': settings.TURNSTILE_SITE_KEY,
     }
     return render(request, 'share-my-program.html', context)
+
+
+def _handle_share_program_post(request):
+    """Обробка POST-запиту форми Share My Program (виділено для надійного error handling)."""
+    client_ip = _get_client_ip(request)
+    
+    try:
+        data = json.loads(request.body)
+    except (json.JSONDecodeError, ValueError):
+        return JsonResponse({'status': 'error', 'message': 'Невірний формат даних.'}, status=400)
+    
+    # ── РІВЕНЬ 1: Cloudflare Turnstile ──
+    turnstile_token = data.get('cf_turnstile_token', '')
+    if not _verify_turnstile(turnstile_token, client_ip):
+        logger.warning(f"Turnstile verification failed from IP: {client_ip}")
+        return JsonResponse({
+            'status': 'error',
+            'message': 'Перевірка безпеки не пройдена. Оновіть сторінку та спробуйте ще раз.'
+        }, status=403)
+    
+    # ── РІВЕНЬ 2a: Honeypot ──
+    # Якщо приховане поле "website" заповнене — це бот
+    if data.get('website', ''):
+        logger.warning(f"Honeypot triggered from IP: {client_ip}")
+        # Повертаємо "успіх" щоб бот думав що все ок
+        return JsonResponse({'status': 'success', 'message': 'Program added successfully'})
+    
+    # ── РІВЕНЬ 2b: Time-based check ──
+    # Людина не може заповнити 8+ полів за 5 секунд
+    form_loaded_at = data.get('form_loaded_at', 0)
+    try:
+        elapsed = (time.time() * 1000 - int(form_loaded_at)) / 1000  # секунди
+        if elapsed < 5:
+            logger.warning(f"Too fast submission ({elapsed:.1f}s) from IP: {client_ip}")
+            return JsonResponse({'status': 'success', 'message': 'Program added successfully'})
+    except (ValueError, TypeError):
+        pass  # Якщо timestamp некоректний — пропускаємо перевірку
+    
+    # ── РІВЕНЬ 3: Серверна валідація ──
+    is_valid, error_msg = _validate_field_lengths(data)
+    if not is_valid:
+        return JsonResponse({'status': 'error', 'message': error_msg}, status=400)
+    
+    # ── РІВЕНЬ 4: Rate Limiting ──
+    if _is_rate_limited(request, limit=5, period=3600):
+        logger.warning(f"Rate limit exceeded from IP: {client_ip}")
+        return JsonResponse({
+            'status': 'error',
+            'message': 'Ви відправили забагато заявок. Спробуйте через годину.'
+        }, status=429)
+    
+    # ── Все перевірки пройдені — зберігаємо програму ──
+    try:
+        program = Program()
+        program.name_uk = _sanitize_input(data.get('program_name', 'No Name'))
+        
+        # --- 1. Inviting University ---
+        inviting_id = data.get('inviting_uni_id')
+        inviting_text = _sanitize_input(data.get('inviting_uni_text', ''))
+        inviting_details = _sanitize_input(data.get('inviting_uni_details', ''))
+        
+        if inviting_id == 'any':
+            program.university = None
+            program.university_details = "ОБРАНО: Будь-який університет / Any University.\n" + inviting_details
+        elif inviting_id:
+            try:
+                program.university = University.objects.get(id=inviting_id)
+                program.university_details = inviting_details
+            except University.DoesNotExist:
+                pass
+        else:
+            info_parts = []
+            if inviting_text:
+                info_parts.append(f"НОВА НАЗВА: {inviting_text}")
+            if inviting_details:
+                info_parts.append(f"ДЕТАЛІ: {inviting_details}")
+            program.university_details = "\n\n".join(info_parts)
+
+        # --- 2. Home University ---
+        home_id = data.get('home_uni_id')
+        home_text = _sanitize_input(data.get('home_uni_text', ''))
+        home_details = _sanitize_input(data.get('home_uni_details', ''))
+        
+        if home_id == 'any':
+            program.home_university = None
+            program.home_university_details = "ОБРАНО: Будь-який університет / Any University.\n" + home_details
+        elif home_id:
+            try:
+                program.home_university = University.objects.get(id=home_id)
+                program.home_university_details = home_details
+            except University.DoesNotExist:
+                pass
+        else:
+            info_parts = []
+            if home_text:
+                info_parts.append(f"НОВА НАЗВА: {home_text}")
+            if home_details:
+                info_parts.append(f"ДЕТАЛІ: {home_details}")
+            program.home_university_details = "\n\n".join(info_parts)
+
+        # --- Інші поля ---
+        program.faculty_uk = _sanitize_input(data.get('faculty', 'Other'))
+        
+        # Мапінг рівня навчання
+        study_level_map = {
+            'Bachelor': 'Bachelor',
+            'Бакалавр': 'Bachelor',
+            'Master': 'Master',
+            'Магістр': 'Master',
+            'PhD': 'PhD',
+            'PhD / Аспірантура': 'PhD',
+            'Other': 'Other',
+            'Інше': 'Other'
+        }
+        raw_level = data.get('level', 'Other')
+        program.study_level = study_level_map.get(raw_level, 'Other')
+        
+        program.description_uk = _sanitize_input(data.get('feedback', ''))
+        program.submitted_by_name = _sanitize_input(data.get('user_name', ''))
+
+        # --- Збереження деталей факультету та рівня ---
+        admin_notes = []
+        faculty_details = _sanitize_input(data.get('faculty_details', ''))
+        level_details = _sanitize_input(data.get('level_details', ''))
+
+        if faculty_details:
+            admin_notes.append(f"Faculty details: {faculty_details}")
+        if level_details:
+            admin_notes.append(f"Level details: {level_details}")
+        
+        if admin_notes:
+            program.user_university_text = " | ".join(admin_notes)[:255]
+        
+        program.save()
+        logger.info(f"New program submitted: '{program.name_uk}' from IP: {client_ip}")
+        return JsonResponse({'status': 'success', 'message': 'Program added successfully'})
+        
+    except Exception as e:
+        logger.error(f"Error adding program: {e}", exc_info=True)
+        return JsonResponse({'status': 'error', 'message': 'Помилка при збереженні програми. Спробуйте ще раз.'}, status=400)
