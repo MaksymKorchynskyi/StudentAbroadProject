@@ -285,7 +285,7 @@ def _handle_share_program_post(request):
     form_loaded_at = data.get('form_loaded_at', 0)
     try:
         elapsed = (time.time() * 1000 - int(form_loaded_at)) / 1000  # секунди
-        if elapsed < 5:
+        if 0 < elapsed < 5:
             logger.warning(f"Too fast submission ({elapsed:.1f}s) from IP: {client_ip}")
             return JsonResponse({'status': 'success', 'message': 'Program added successfully'})
     except (ValueError, TypeError):
