@@ -31,7 +31,8 @@ class ProgramAdmin(ModelAdmin):
         'home_university__name_uk',
         'university_details',
         'home_university_details',
-        'user_university_text'
+        'faculty_details',
+        'level_details'
     )
     
     list_editable = ('is_approved',)
@@ -61,7 +62,9 @@ class ProgramAdmin(ModelAdmin):
         }),
 
         ('Факультет та Рівень', {
-            'fields': ('faculty_uk', 'faculty_en', 'study_level', 'program_type', 'user_university_text')
+            'fields': ('faculty_uk', 'faculty_en', 'faculty_details',
+                       'study_level', 'level_details', 'program_type'),
+            'description': "Якщо користувач натиснув '+', його коментар буде в полях 'Деталі...'."
         }),
         
         ('Опис та Відгук', {
@@ -93,12 +96,7 @@ class ProgramAdmin(ModelAdmin):
     def display_approved_badge(self, obj):
         return obj.is_approved, "Опубліковано" if obj.is_approved else "Чернетка"
 
-    # Custom form styling
-    def get_form(self, request, obj=None, **kwargs):
-        form = super().get_form(request, obj, **kwargs)
-        form.base_fields['user_university_text'].widget = forms.Textarea(attrs={'rows': 4, 'cols': 100})
-        form.base_fields['user_university_text'].help_text = "Технічне поле: тут зберігаються додаткові деталі про ступінь (level) від користувача."
-        return form
+
 
     # ============================================================
     # CUSTOM ACTIONS - CRM Functionality

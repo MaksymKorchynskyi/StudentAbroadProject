@@ -390,27 +390,5 @@ export function initCustomSelects(options = {}) {
     console.error("initCustomSelects (selects) error:", err);
   }
 
-  // --- Валідація і сабміт ---
-  const submitBtn = document.querySelector(".submit-button .btn");
-  const fields = document.querySelectorAll("[data-required]");
 
-  if (submitBtn) {
-    submitBtn.addEventListener("click", (e) => {
-      e.preventDefault();
-      let hasError = false;
-
-      fields.forEach((field) => {
-        const value = field.value.trim();
-        field.classList.remove("input-error");
-        if (value === "") {
-          field.classList.add("input-error");
-          hasError = true;
-        }
-      });
-
-      if (!hasError) {
-        window.location.href = "confirmation.html";
-      }
-    });
-  }
 }

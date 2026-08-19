@@ -267,6 +267,9 @@
                     <textarea class="new-item-input" id="faculty-details"></textarea>
                   </div>
                 </div>
+                <button type="button" class="form-section__add-button custom-select-add-button" id="add-faculty-button">
+                  <img src="{% static 'project/img/+.svg' %}" alt="+" />
+                </button>
                 <label class="form-section__description" 
                        data-en="Choose the faculty from the list or enter your own." 
                        data-ua="Обери факультет зі списку або введи свій.">
@@ -463,7 +466,25 @@
           const requiredFields = form.querySelectorAll('[data-required]');
           let isValid = true;
           requiredFields.forEach(f => {
-              if(!f.value.trim()) {
+              let fieldValid = false;
+
+              if(f.value.trim()) {
+                  fieldValid = true;
+              }
+
+              // Якщо користувач ввів дані через кнопку "+" (в деталях)
+              if (f.id === 'inviting-uni-input') {
+                  const details = document.getElementById('inviting-uni-details');
+                  if (details && details.value.trim()) fieldValid = true;
+              } else if (f.id === 'faculty-input') {
+                  const details = document.getElementById('faculty-details');
+                  if (details && details.value.trim()) fieldValid = true;
+              } else if (f.id === 'level-input') {
+                  const details = document.getElementById('level-details');
+                  if (details && details.value.trim()) fieldValid = true;
+              }
+
+              if(!fieldValid) {
                   f.classList.add('input-error');
                   isValid = false;
               } else {

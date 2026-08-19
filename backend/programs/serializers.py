@@ -29,10 +29,10 @@ class ProgramSerializer(serializers.ModelSerializer):
             'description_uk', 'description_en',
             'testimonial_uk', 'testimonial_en',
             'submitted_by_name', 'submitted_by_email', 
-            'user_university_text', 'useful_links', 
+            'faculty_details', 'level_details', 'useful_links', 
             'is_approved', 'created_at'
         ]
-        read_only_fields = ['id', 'created_at', 'is_approved', 'user_university_text']
+        read_only_fields = ['id', 'created_at', 'is_approved']
 
     def get_useful_links(self, obj):
         return obj.get_useful_links_combined()
@@ -59,15 +59,8 @@ class ProgramSerializer(serializers.ModelSerializer):
         uni_details = validated_data.pop('university_details', '')
         home_uni_details = validated_data.pop('home_university_details', '')
 
-        # Текст для адміна
-        details_text = []
-        if uni_details:
-            details_text.append(f"Деталі приймаючого ВНЗ: {uni_details}")
-        if home_uni_details:
-            details_text.append(f"Деталі домашнього ВНЗ: {home_uni_details}")
-        
-        full_text = " | ".join(details_text)
-        validated_data['user_university_text'] = full_text[:255]
+        validated_data['faculty_details'] = uni_details
+        validated_data['level_details'] = ''
 
         # Логіка Приймаючого університету
         if university_id:

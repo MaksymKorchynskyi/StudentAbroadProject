@@ -215,8 +215,6 @@ _FIELD_MAX_LENGTHS = {
     'faculty': 100,
     'feedback': 5000,
     'user_name': 100,
-    'faculty_details': 500,
-    'level_details': 500,
 }
 
 
@@ -374,17 +372,8 @@ def _handle_share_program_post(request):
         program.submitted_by_name = _sanitize_input(data.get('user_name', ''))
 
         # --- Збереження деталей факультету та рівня ---
-        admin_notes = []
-        faculty_details = _sanitize_input(data.get('faculty_details', ''))
-        level_details = _sanitize_input(data.get('level_details', ''))
-
-        if faculty_details:
-            admin_notes.append(f"Faculty details: {faculty_details}")
-        if level_details:
-            admin_notes.append(f"Level details: {level_details}")
-        
-        if admin_notes:
-            program.user_university_text = " | ".join(admin_notes)[:255]
+        program.faculty_details = _sanitize_input(data.get('faculty_details', ''))
+        program.level_details = _sanitize_input(data.get('level_details', ''))
         
         program.save()
         logger.info(f"New program submitted: '{program.name_uk}' from IP: {client_ip}")

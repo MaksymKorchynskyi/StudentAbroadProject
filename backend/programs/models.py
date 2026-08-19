@@ -62,8 +62,18 @@ class Program(models.Model):
     )
     home_university_text = models.CharField(max_length=255, blank=True, verbose_name="Legacy Text")
 
-    # Решта полів
-    user_university_text = models.CharField(max_length=255, blank=True)
+    faculty_details = models.TextField(
+        blank=True,
+        default='',
+        verbose_name="Деталі факультету (від користувача)",
+        help_text="Коментар користувача про факультет (поле '+' у формі)."
+    )
+    level_details = models.TextField(
+        blank=True,
+        default='',
+        verbose_name="Деталі рівня навчання (від користувача)",
+        help_text="Коментар користувача про рівень навчання (поле '+' у формі)."
+    )
     program_type = models.CharField(max_length=20, choices=PROGRAM_TYPE_CHOICES, default='exchange')
     faculty_uk = models.CharField(max_length=100, verbose_name="Факультет")
     faculty_en = models.CharField(max_length=100, blank=True, verbose_name="Faculty (eng)")
