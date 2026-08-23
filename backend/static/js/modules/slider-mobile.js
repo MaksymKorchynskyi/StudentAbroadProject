@@ -6,22 +6,19 @@ export function initSlider() {
   );
 
   if (!isAllowed) {
-    console.log("Slider initialization skipped: not on allowed pages");
     return;
   }
 
-  // --- ОРИГІНАЛ ---
-  const cards = document.querySelectorAll(".university-card-m:not(.no-results-message-mobile):not(#no-filter-results-mobile)");
-
-  // --- ВИБІР АКТИВНИХ КАРТОК ---
-  const programCards = document.querySelectorAll(".program-card-m:not(.no-results-message-mobile):not(#no-filter-results-mobile)");
-  const activeCardsNodeList = programCards.length ? programCards : cards;
+  // --- Визначення типу карток ---
+  const programCards = document.querySelectorAll(
+    ".program-card-m:not(.no-results-message-mobile):not(#no-filter-results-mobile)"
+  );
+  const isProgramPage = path.endsWith("program-list.html");
   const cardSelector = programCards.length
     ? ".program-card-m"
     : ".university-card-m";
 
-  // --- ВИБІР ПРАВИЛЬНИХ СТРІЛОК ---
-  const isProgramPage = path.endsWith("program-list.html");
+  // --- Вибір стрілок ---
   const prevArrow = document.querySelector(
     isProgramPage ? ".slider__arrow--left-p" : ".slider__arrow--left"
   );
@@ -32,62 +29,54 @@ export function initSlider() {
   // Основні елементи слайдера
   const track = document.querySelector(".slider__track");
   const indicators = document.querySelectorAll(".slider__indicator");
+  const indContainer = document.querySelector(".slider__indicators");
 
-  // Початкові змінні
+  if (!track) {
+    return;
+  }
+
+  // --- Стан слайдера ---
   let currentIndex = 0;
   let isAnimating = false;
+  let activeCards = [];
 
-  // Перевірка наявності потрібних елементів
-  if (!track || activeCardsNodeList.length === 0) {
-    if (prevArrow) prevArrow.style.display = 'none';
-    if (nextArrow) nextArrow.style.display = 'none';
-    const indContainer = document.querySelector('.slider__indicators');
-    if (indContainer) indContainer.style.display = 'none';
-    return;
+  // --- Селектор для оригінальних (не-клонованих) карток ---
+  const originalCardSelector = `${cardSelector}:not(.no-results-message-mobile):not(#no-filter-results-mobile):not([data-clone="true"])`;
+
+  /**
+   * Збирає лише ВИДИМІ оригінальні картки (не клони, не display:none)
+   */
+  function getVisibleOriginalCards() {
+    const allOriginals = Array.from(track.querySelectorAll(originalCardSelector));
+    return allOriginals.filter(
+      (card) => card.style.display !== "none" && window.getComputedStyle(card).display !== "none"
+    );
   }
 
-  // Якщо тільки 1 картка, не потрібно ініціалізувати слайдер (стрілки і індикатори ховаємо)
-  if (activeCardsNodeList.length === 1) {
-    if (prevArrow) prevArrow.style.display = 'none';
-    if (nextArrow) nextArrow.style.display = 'none';
-    const indContainer = document.querySelector('.slider__indicators');
-    if (indContainer) indContainer.style.display = 'none';
-    return;
+  /**
+   * Видаляє всі клоновані елементи з треку
+   */
+  function removeClones() {
+    const clones = track.querySelectorAll('[data-clone="true"]');
+    clones.forEach((clone) => clone.remove());
   }
 
-  if (!indicators.length) {
-    return;
+  /**
+   * Ховає/показує UI елементи слайдера (стрілки, індикатори)
+   */
+  function setSliderUIVisibility(visible) {
+    if (prevArrow) prevArrow.style.display = visible ? "" : "none";
+    if (nextArrow) nextArrow.style.display = visible ? "" : "none";
+    if (indContainer) indContainer.style.display = visible ? "" : "none";
   }
 
-  const activeCards = Array.from(activeCardsNodeList);
-
-  // Клонуємо перший і останній слайди для безкінечного ефекту
-  const firstClone = activeCards[0].cloneNode(true);
-  const lastClone = activeCards[activeCards.length - 1].cloneNode(true);
-
-  // Додаємо клони в трек
-  track.appendChild(firstClone);
-  track.insertBefore(lastClone, activeCards[0]);
-
-  // Всі слайди всередині треку
-  const allSlides = Array.from(track.querySelectorAll(cardSelector));
-  const totalSlides = allSlides.length;
-
-  console.log("Slider init:", {
-    page: path,
-    cardSelector,
-    totalSlides,
-    arrows: { prev: !!prevArrow, next: !!nextArrow },
-  });
-
-  // Початкове зміщення треку
-  track.style.transform = `translateX(-${100}%)`;
-
-  // === ФУНКЦІЇ СЛАЙДЕРА ===
-
+  /**
+   * Оновлює індикатори слайдера
+   */
   function updateIndicators() {
-    let indicatorIndex;
+    if (!indicators.length) return;
 
+    let indicatorIndex;
     if (currentIndex >= activeCards.length) {
       indicatorIndex = 0;
     } else if (currentIndex < 0) {
@@ -101,6 +90,9 @@ export function initSlider() {
     });
   }
 
+  /**
+   * Оновлює позицію слайдера з анімацією
+   */
   function updateSlider() {
     if (isAnimating) return;
 
@@ -137,6 +129,56 @@ export function initSlider() {
     updateSlider();
   }
 
+  /**
+   * Головна функція перебудови слайдера.
+   * Викликається при зміні фільтрів або при ініціалізації.
+   */
+  function rebuildSlider() {
+    // 1. Видалити старі клони
+    removeClones();
+
+    // 2. Зібрати лише видимі картки
+    activeCards = getVisibleOriginalCards();
+
+    // 3. Скинути позицію
+    currentIndex = 0;
+    isAnimating = false;
+    track.style.transition = "none";
+
+    // 4. Edge case: 0 видимих карток
+    if (activeCards.length === 0) {
+      setSliderUIVisibility(false);
+      track.style.transform = "translateX(0)";
+      return;
+    }
+
+    // 5. Edge case: 1 видима картка — показати без слайдера
+    if (activeCards.length === 1) {
+      setSliderUIVisibility(false);
+      track.style.transform = "translateX(0)";
+      return;
+    }
+
+    // 6. Показати UI елементи
+    setSliderUIVisibility(true);
+
+    // 7. Клонувати першу і останню видимі картки для безкінечного ефекту
+    const firstClone = activeCards[0].cloneNode(true);
+    const lastClone = activeCards[activeCards.length - 1].cloneNode(true);
+    firstClone.setAttribute("data-clone", "true");
+    lastClone.setAttribute("data-clone", "true");
+
+    // 8. Додати клони в трек
+    track.appendChild(firstClone);
+    track.insertBefore(lastClone, activeCards[0]);
+
+    // 9. Встановити початкову позицію (перша оригінальна картка = індекс 1 через prepended clone)
+    track.style.transform = `translateX(-100%)`;
+
+    // 10. Оновити індикатори
+    updateIndicators();
+  }
+
   // --- НАВІГАЦІЙНІ СТРІЛКИ ---
   if (prevArrow) prevArrow.addEventListener("click", goToPrevSlide);
   if (nextArrow) nextArrow.addEventListener("click", goToNextSlide);
@@ -145,16 +187,14 @@ export function initSlider() {
   let startX = 0;
   let endX = 0;
 
-  if (track) {
-    track.addEventListener("touchstart", (e) => {
-      startX = e.touches[0].clientX;
-    });
+  track.addEventListener("touchstart", (e) => {
+    startX = e.touches[0].clientX;
+  }, { passive: true });
 
-    track.addEventListener("touchend", (e) => {
-      endX = e.changedTouches[0].clientX;
-      handleSwipe();
-    });
-  }
+  track.addEventListener("touchend", (e) => {
+    endX = e.changedTouches[0].clientX;
+    handleSwipe();
+  });
 
   function handleSwipe() {
     const swipeThreshold = 50;
@@ -166,6 +206,11 @@ export function initSlider() {
     }
   }
 
+  // --- СЛУХАЧ CustomEvent від фільтрів ---
+  document.addEventListener("filter-changed", () => {
+    rebuildSlider();
+  });
+
   // --- ІНІЦІАЛІЗАЦІЯ ---
-  updateIndicators();
+  rebuildSlider();
 }

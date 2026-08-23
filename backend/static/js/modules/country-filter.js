@@ -6,7 +6,7 @@ export function initCountryFilter() {
     ".checkbox-group, .checkbox-group-special, .checkbox-group-mobile"
   );
 
-  // 1. Ініціалізація пагінації та пошуку для чекбоксів (Ваш старий код)
+  // 1. Ініціалізація пагінації та пошуку для чекбоксів
   createNavigationButtons();
 
   if (countrySearchInput && checkboxGroups.length > 0) {
@@ -341,10 +341,11 @@ export function initCountryFilter() {
         color: #666;
       }
       .fade-in {
-        animation: fadeIn 0.2s ease-in;
+        animation: fadeIn 0.15s ease-in;
+        animation-fill-mode: forwards;
       }
       @keyframes fadeIn {
-        from { opacity: 0; }
+        from { opacity: 0.7; }
         to { opacity: 1; }
       }
     `;
@@ -357,99 +358,177 @@ export function initCountryFilter() {
     el.classList.add("fade-in");
   }
 
-  // === НОВА ЛОГІКА: Фільтрація університетів ===
+  // === ЛОГІКА ФІЛЬТРАЦІЇ УНІВЕРСИТЕТІВ ===
+  // (Об'єднана версія — модульний фільтр + Show More пагінація)
   function initUniversityFiltering() {
     // Знаходимо всі чекбокси (включаючи мобільні)
     const inputs = document.querySelectorAll(".container-checkbox__input");
-    
-    // Знаходимо всі картки університетів (десктоп і мобільні), окрім повідомлень про відсутність результатів
-    const cards = document.querySelectorAll(".university-card:not(.no-results-message):not(#no-filter-results), .university-card-m:not(.no-results-message-mobile):not(#no-filter-results-mobile)");
+
+    // Знаходимо всі картки університетів (десктоп і мобільні), окрім повідомлень
+    const cards = document.querySelectorAll(
+      ".university-card:not(.no-results-message):not(#no-filter-results), .university-card-m:not(.no-results-message-mobile):not(#no-filter-results-mobile)"
+    );
 
     // Знаходимо чекбокси "All" (Всі країни)
-    const allCheckboxes = document.querySelectorAll('.container-checkbox__input[value="all"]');
+    const allCheckboxes = document.querySelectorAll(
+      '.container-checkbox__input[value="all"]'
+    );
 
-    // Функція застосування фільтру
-    function applyFilter() {
-      // Збираємо список обраних країн (ігноруючи 'all')
-      const checkedCountries = Array.from(inputs)
-        .filter(input => input.checked && input.value !== 'all')
-        .map(input => input.value);
+    // --- Show More пагінація (desktop only) ---
+    const ITEMS_PER_PAGE = 7;
+    let visibleCount = ITEMS_PER_PAGE;
+    const showMoreBtn = document.getElementById("show-more-uni-btn");
 
-      // Чи обрано "Всі" або жодна країна не обрана?
-      // Якщо жодна не обрана, вважаємо, що треба показати всі (дефолтна поведінка)
-      const showAll = checkedCountries.length === 0;
+    // Елементи "Нічого не знайдено"
+    const noResultsDesktop = document.getElementById("no-filter-results");
+    const noResultsMobile = document.getElementById(
+      "no-filter-results-mobile"
+    );
 
-      // Якщо список порожній, повертаємо галочку на "All", щоб користувач бачив стан
-      if (showAll) {
-        allCheckboxes.forEach(cb => cb.checked = true);
-      }
+    /**
+     * Застосовує пагінацію Show More для десктоп-карток
+     */
+    function applyPagination() {
+      const desktopCards = document.querySelectorAll(
+        ".university-card:not(.no-results-message):not(#no-filter-results)"
+      );
+      const matchingCards = Array.from(desktopCards).filter(
+        (c) => c.dataset.filteredOut !== "true"
+      );
 
-      let visibleCountDesktop = 0;
-      let visibleCountMobile = 0;
-
-      cards.forEach(card => {
-        const country = card.getAttribute("data-country");
-        const isMobile = card.classList.contains("university-card-m");
-        
-        // Показуємо, якщо "Всі" або країна є у списку обраних
-        if (showAll || checkedCountries.includes(country)) {
-          card.style.display = ""; // Скидаємо inline style (display: none), повертається flex/block з CSS
-          if (isMobile) {
-            visibleCountMobile++;
-          } else {
-            visibleCountDesktop++;
-          }
+      matchingCards.forEach((card, index) => {
+        if (index < visibleCount) {
+          card.style.display = "";
         } else {
           card.style.display = "none";
         }
       });
 
-      const noResultsDesktop = document.getElementById("no-filter-results");
-      const noResultsMobile = document.getElementById("no-filter-results-mobile");
-      
-      const desktopCards = document.querySelectorAll('.university-card:not(.no-results-message):not(#no-filter-results)');
-      const mobileCards = document.querySelectorAll('.university-card-m:not(.no-results-message-mobile):not(#no-filter-results-mobile)');
-      
-      if (noResultsDesktop) {
-        if (desktopCards.length === 0) {
-          noResultsDesktop.style.display = 'none';
-        } else {
-          noResultsDesktop.style.display = visibleCountDesktop === 0 ? 'flex' : 'none';
-        }
-      }
-      
-      if (noResultsMobile) {
-        if (mobileCards.length === 0) {
-          noResultsMobile.style.display = 'none';
-        } else {
-          noResultsMobile.style.display = visibleCountMobile === 0 ? 'block' : 'none';
-        }
+      if (showMoreBtn) {
+        showMoreBtn.style.display =
+          visibleCount >= matchingCards.length ? "none" : "";
       }
     }
 
+    /**
+     * Головна функція фільтрації
+     */
+    function applyFilter() {
+      // Збираємо список обраних країн (ігноруючи 'all')
+      const checkedCountries = Array.from(inputs)
+        .filter((input) => input.checked && input.value !== "all")
+        .map((input) => input.value);
+
+      // Якщо жодна країна не обрана — показати всі
+      const showAll = checkedCountries.length === 0;
+
+      // Якщо список порожній, повертаємо галочку на "All"
+      if (showAll) {
+        allCheckboxes.forEach((cb) => (cb.checked = true));
+      }
+
+      let visibleCountMobile = 0;
+
+      cards.forEach((card) => {
+        const country = card.getAttribute("data-country");
+        const isDesktop = card.classList.contains("university-card");
+        const isMobile = card.classList.contains("university-card-m");
+
+        if (showAll || checkedCountries.includes(country)) {
+          if (isDesktop) {
+            // Desktop: позначаємо як не відфільтровані, пагінація керує display
+            card.dataset.filteredOut = "false";
+          } else if (isMobile) {
+            card.style.display = "";
+            visibleCountMobile++;
+          }
+        } else {
+          if (isDesktop) {
+            card.dataset.filteredOut = "true";
+            card.style.display = "none";
+          } else if (isMobile) {
+            card.style.display = "none";
+          }
+        }
+      });
+
+      // Скидаємо пагінацію при зміні фільтра
+      visibleCount = ITEMS_PER_PAGE;
+      applyPagination();
+
+      // Обробка повідомлень "Нічого не знайдено"
+      const desktopCards = document.querySelectorAll(
+        ".university-card:not(.no-results-message):not(#no-filter-results)"
+      );
+      const visibleDesktopCards = Array.from(desktopCards).filter(
+        (c) => c.dataset.filteredOut !== "true"
+      );
+
+      if (noResultsDesktop) {
+        if (desktopCards.length === 0) {
+          noResultsDesktop.style.display = "none";
+        } else {
+          noResultsDesktop.style.display =
+            visibleDesktopCards.length === 0 ? "flex" : "none";
+        }
+      }
+
+      const mobileCards = document.querySelectorAll(
+        ".university-card-m:not(.no-results-message-mobile):not(#no-filter-results-mobile)"
+      );
+      if (noResultsMobile) {
+        if (mobileCards.length === 0) {
+          noResultsMobile.style.display = "none";
+        } else {
+          noResultsMobile.style.display =
+            visibleCountMobile === 0 ? "block" : "none";
+        }
+      }
+
+      // Сповіщаємо слайдер про зміну фільтра (з невеликою затримкою для Safari)
+      setTimeout(() => {
+        document.dispatchEvent(new CustomEvent("filter-changed"));
+      }, 10);
+    }
+
+    // Show More кнопка
+    if (showMoreBtn) {
+      showMoreBtn.addEventListener("click", () => {
+        visibleCount += ITEMS_PER_PAGE;
+        applyPagination();
+      });
+    }
+
     // Слухач подій для всіх чекбоксів
-    inputs.forEach(input => {
+    inputs.forEach((input) => {
       input.addEventListener("change", (e) => {
         const isAll = e.target.value === "all";
         const isChecked = e.target.checked;
+        const valueChanged = e.target.value;
 
         if (isAll && isChecked) {
           // Якщо натиснули "All", знімаємо вибір з усіх інших
-          inputs.forEach(i => {
+          inputs.forEach((i) => {
             if (i.value !== "all") i.checked = false;
           });
-          // Синхронізуємо інші чекбокси "All" (наприклад, у мобільній і десктоп версіях)
-          allCheckboxes.forEach(cb => cb.checked = true);
+          allCheckboxes.forEach((cb) => (cb.checked = true));
         } else if (!isAll && isChecked) {
           // Якщо обрали конкретну країну, знімаємо галочку з "All"
-          allCheckboxes.forEach(cb => cb.checked = false);
+          allCheckboxes.forEach((cb) => (cb.checked = false));
         }
+
+        // Синхронізуємо чекбокси між десктоп і мобільною версією
+        inputs.forEach((otherCb) => {
+          if (otherCb.value === valueChanged && otherCb !== e.target) {
+            otherCb.checked = isChecked;
+          }
+        });
 
         applyFilter();
       });
     });
 
-    // Запускаємо фільтрацію одразу при завантаженні (щоб все показати або застосувати збережений стан)
+    // Запускаємо фільтрацію одразу при завантаженні
     applyFilter();
   }
 }
