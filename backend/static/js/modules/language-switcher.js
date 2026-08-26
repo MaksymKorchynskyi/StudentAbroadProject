@@ -29,7 +29,8 @@ export function initLanguageSwitcher() {
 
     if (
       htmlTags.includes(el.tagName) ||
-      el.classList.contains("about-us__title")
+      el.classList.contains("about-us__title") ||
+      el.classList.contains("faq__answer-text")
     ) {
       el.innerHTML = translation;
     } else {

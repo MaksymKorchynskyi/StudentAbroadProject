@@ -216,7 +216,7 @@
             <div class="faq__line"></div>
 
             <div class="faq__answer">
-              <div data-en="{{ faq.answer_en|linebreaksbr }}" data-ua="{{ faq.answer_ua|linebreaksbr }}">
+              <div class="faq__answer-text" data-en="{{ faq.answer_en|linebreaksbr }}" data-ua="{{ faq.answer_ua|linebreaksbr }}">
                 {{ faq.answer_en|default:faq.answer_ua|linebreaksbr }}
               </div>
             </div>

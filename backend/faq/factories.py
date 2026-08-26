@@ -21,8 +21,17 @@ class FAQItemFactory(factory.django.DjangoModelFactory):
     question_ua = factory.LazyAttribute(lambda _: f"{fake.sentence().rstrip('.')}?")
     question_en = factory.LazyAttribute(lambda _: f"{fake_en.sentence().rstrip('.')}?")
     
-    answer_ua = factory.Faker('paragraph', nb_sentences=4, locale='uk_UA')
-    answer_en = factory.Faker('paragraph', nb_sentences=4, locale='en_US')
+    @factory.lazy_attribute
+    def answer_ua(self):
+        if random.choice([True, False]):
+            return "\n\n".join(fake.paragraphs(nb=random.randint(2, 5)))
+        return fake.paragraph(nb_sentences=random.randint(8, 15))
+
+    @factory.lazy_attribute
+    def answer_en(self):
+        if random.choice([True, False]):
+            return "\n\n".join(fake_en.paragraphs(nb=random.randint(2, 5)))
+        return fake_en.paragraph(nb_sentences=random.randint(8, 15))
     
     author_ua = factory.Faker('name', locale='uk_UA')
     author = factory.Faker('name', locale='en_US')
