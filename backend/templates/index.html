@@ -5,7 +5,25 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" />
     <meta name="google-site-verification" content="IwgYatI3qdgxV6D_epz-aWo_Os1XqnHWXvDW3WvLleI" />
+    
+    <!-- SEO Meta Tags -->
     <title>Study Abroad Programs & Universities | StudentAbroad</title>
+    <meta name="description" content="{{ default_meta_description|default:'Browse exchange programs, universities, and study abroad opportunities for Ukrainian students. Get honest reviews and insights directly from other students.' }}">
+    <link rel="canonical" href="{{ canonical_url }}">
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="{{ canonical_url }}">
+    <meta property="og:title" content="Study Abroad Programs & Universities | StudentAbroad">
+    <meta property="og:description" content="{{ default_meta_description|default:'Browse exchange programs, universities, and study abroad opportunities for Ukrainian students. Get honest reviews and insights directly from other students.' }}">
+    <meta property="og:image" content="{{ default_og_image }}">
+    <meta property="og:site_name" content="{{ site_name }}">
+
+    <!-- Twitter Cards -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Study Abroad Programs & Universities | StudentAbroad">
+    <meta name="twitter:description" content="{{ default_meta_description|default:'Browse exchange programs, universities, and study abroad opportunities for Ukrainian students. Get honest reviews and insights directly from other students.' }}">
+    <meta name="twitter:image" content="{{ default_og_image }}">
 
     <link rel="stylesheet" href="{% static 'project/css/style.css' %}" />
     <link rel="preload" as="image" href="{% static 'project/img/bg.webp' %}" />

@@ -13,9 +13,9 @@ def seo_defaults(request):
     return {
         'default_meta_title': 'StudentAbroad - Study Abroad Programs for Ukrainian Students',
         'default_meta_title_uk': 'StudentAbroad - Програми навчання за кордоном для українських студентів',
-        'default_meta_description': 'Find exchange programs, universities, and study abroad opportunities. Get honest reviews from international students.',
-        'default_meta_description_uk': 'Знайди програми обміну, університети та можливості навчання за кордоном. Отримай чесні відгуки від міжнародних студентів.',
+        'default_meta_description': 'Browse exchange programs, universities, and study abroad opportunities for Ukrainian students. Get honest reviews and insights directly from other students.',
+        'default_meta_description_uk': 'Переглядай програми обміну, університети та можливості навчання за кордоном для українських студентів. Отримуй чесні відгуки та поради від інших студентів.',
         'default_og_image': request.build_absolute_uri('/static/project/img/bg.png'),
         'site_name': 'StudentAbroad',
-        'canonical_url': request.build_absolute_uri(),
+        'canonical_url': request.build_absolute_uri(request.path),
     }
